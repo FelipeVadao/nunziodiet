@@ -221,6 +221,138 @@
     .hidden { display: none !important; }
     @keyframes up { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
 
+    /* ── Botão água ── */
+    .btn-water {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 13px;
+      background: transparent;
+      color: var(--charcoal);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .btn-water:hover { border-color: var(--green); background: #f2fde8; }
+    .btn-water .drop { font-size: 1.1rem; }
+
+    /* ── Modal ── */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: fadein .2s ease;
+    }
+    @keyframes fadein { from { opacity:0; } to { opacity:1; } }
+
+    .modal {
+      background: white;
+      border-radius: 22px;
+      padding: 32px 28px 28px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      animation: up .25s ease;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 18px;
+      background: none; border: none;
+      font-size: 1.4rem; cursor: pointer;
+      color: var(--text-muted); line-height: 1;
+    }
+    .modal-close:hover { color: var(--charcoal); }
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--charcoal);
+      margin-bottom: 4px;
+    }
+    .modal-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .modal-field label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 6px;
+    }
+    .modal-field input {
+      padding: 11px 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .btn-calcwater {
+      width: 100%;
+      padding: 13px;
+      background: var(--green);
+      color: var(--charcoal);
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: .3px;
+      transition: opacity .2s;
+    }
+    .btn-calcwater:hover { opacity: .88; }
+
+    /* Resultado água */
+    .water-result {
+      margin-top: 20px;
+      background: var(--charcoal);
+      border-radius: 14px;
+      padding: 20px;
+      color: white;
+      text-align: center;
+      animation: up .3s ease;
+    }
+    .water-liters {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--green);
+      line-height: 1;
+    }
+    .water-unit { font-size: 1rem; font-weight: 600; opacity: .7; margin-bottom: 10px; }
+    .water-glasses {
+      font-size: 0.82rem;
+      opacity: .75;
+      margin-top: 6px;
+    }
+    .water-tip {
+      margin-top: 14px;
+      background: rgba(98,200,35,.12);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: var(--green-light);
+      line-height: 1.5;
+      text-align: left;
+    }
+
     /* scrollbar */
     .dropdown::-webkit-scrollbar { width: 6px; }
     .dropdown::-webkit-scrollbar-track { background: transparent; }
@@ -276,6 +408,37 @@
   </div>
 
   <button class="btn" onclick="calculate()">Calcular substituição →</button>
+  <button class="btn-water" onclick="openWater()">
+    <span class="drop">💧</span> Calcular ingestão diária de água
+  </button>
+
+  <!-- Modal Água -->
+  <div class="modal-bg hidden" id="waterModal" onclick="closeWaterOnBg(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="closeWater()">×</button>
+      <div class="modal-title">💧 Ingestão diária de água</div>
+      <div class="modal-sub">Baseado nas diretrizes da OMS</div>
+
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label for="w-peso">Peso (kg)</label>
+          <input type="number" id="w-peso" placeholder="70" min="1" max="300">
+        </div>
+        <div class="modal-field">
+          <label for="w-altura">Altura (cm)</label>
+          <input type="number" id="w-altura" placeholder="170" min="50" max="250">
+        </div>
+        <div class="modal-field">
+          <label for="w-idade">Idade</label>
+          <input type="number" id="w-idade" placeholder="30" min="1" max="120">
+        </div>
+      </div>
+
+      <button class="btn-calcwater" onclick="calcWater()">Calcular</button>
+
+      <div id="waterResult" class="hidden"></div>
+    </div>
+  </div>
 
   <!-- Resultados -->
   <div id="results" class="hidden">
@@ -566,6 +729,68 @@ function fmt(n) {
 document.getElementById('qtyA').addEventListener('keydown', e => {
   if (e.key === 'Enter') calculate();
 });
+
+// ── Calculadora de Água ──────────────────────────────────────────
+
+function openWater() {
+  document.getElementById('waterModal').classList.remove('hidden');
+  document.getElementById('waterResult').classList.add('hidden');
+  document.getElementById('w-peso').focus();
+}
+
+function closeWater() {
+  document.getElementById('waterModal').classList.add('hidden');
+}
+
+function closeWaterOnBg(e) {
+  if (e.target.id === 'waterModal') closeWater();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeWater();
+});
+
+// Fórmula OMS: ml/dia baseado em peso e idade
+// Referência: WHO Technical Report + Dietary Reference Intakes (IOM/WHO)
+function calcWater() {
+  const peso  = parseFloat(document.getElementById('w-peso').value);
+  const altura = parseFloat(document.getElementById('w-altura').value);
+  const idade = parseFloat(document.getElementById('w-idade').value);
+
+  if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
+    alert('Preencha todos os campos corretamente.');
+    return;
+  }
+
+  // Fator ml/kg conforme faixa etária (OMS)
+  let fator;
+  if      (idade <= 17)  fator = 40;
+  else if (idade <= 30)  fator = 40;
+  else if (idade <= 55)  fator = 35;
+  else if (idade <= 65)  fator = 30;
+  else                   fator = 25;
+
+  const mlDia   = Math.round((peso * fator) / 50) * 50; // arredonda a 50ml
+  const litros  = (mlDia / 1000).toFixed(2).replace('.', ',');
+  const copos   = Math.round(mlDia / 250); // copo padrão 250ml
+
+  // IMC como info adicional
+  const altM = altura / 100;
+  const imc  = (peso / (altM * altM)).toFixed(1);
+
+  const box = document.getElementById('waterResult');
+  box.innerHTML = `
+    <div class="water-result">
+      <div class="water-unit">Ingestão diária recomendada</div>
+      <div class="water-liters">${litros} L</div>
+      <div class="water-glasses">≈ ${copos} copos de 250 ml por dia</div>
+      <div class="water-tip">
+        <strong>Como distribuir:</strong> beba 1 copo ao acordar, 1 antes de cada refeição e 1 antes de dormir — e complete o restante ao longo do dia.<br><br>
+        <strong>Seu IMC:</strong> ${imc} kg/m²  &nbsp;|&nbsp;  <strong>Fator aplicado:</strong> ${fator} ml/kg (OMS, faixa ${idade <= 30 ? '18–30' : idade <= 55 ? '31–55' : idade <= 65 ? '56–65' : '65+'} anos)
+      </div>
+    </div>`;
+  box.classList.remove('hidden');
+}
 </script>
 </body>
 </html>
