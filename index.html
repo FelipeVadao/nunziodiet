@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NunzioDiet — Substituição de Alimentos</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --green: #62C823;
+      --green-dark: #4DA819;
+      --green-xdark: #3C8513;
+      --green-light: #C8F09A;
+      --green-bg: #F4F4F4;
+      --charcoal: #2B2B2B;
+      --purple: #7c3aed;
+      --purple-light: #ddd6fe;
+      --border: #D4EFC0;
+      --text: #2B2B2B;
+      --text-muted: #6b7280;
+      --card-shadow: 0 4px 24px rgba(98,200,35,0.12);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--green-bg);
+      color: var(--charcoal);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--green);
+      padding: 40px 24px 36px;
+      text-align: center;
+      color: var(--charcoal);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 10px; }
+    .logo { font-size: 2.4rem; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+    .logo em { font-style: normal; color: var(--charcoal); }
+    .logo span { font-style: normal; color: white; }
+    .tagline { font-size: 0.95rem; color: var(--charcoal); opacity: .75; font-weight: 500; letter-spacing: .5px; }
+
+    /* ── Layout ── */
+    .container { max-width: 840px; margin: 0 auto; padding: 36px 16px 60px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 580px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .arrow-col { transform: rotate(90deg); padding: 4px 0; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      border: 1.5px solid var(--border);
+    }
+
+    .chip {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 18px;
+    }
+    .chip-a { background: #e0f8c8; color: var(--green-xdark); }
+    .chip-b { background: var(--purple-light); color: var(--purple); }
+
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+
+    .ac-wrap { position: relative; }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      color: #111827;
+      background: #fafafa;
+    }
+    input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(98,200,35,.18); background: white; }
+    input.error { border-color: #ef4444; }
+
+    .dropdown {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0; right: 0;
+      background: white;
+      border: 1.5px solid var(--green-light);
+      border-radius: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      display: none;
+    }
+    .dropdown.open { display: block; }
+    .dd-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      border-bottom: 1px solid #f3f4f6;
+      transition: background .12s;
+    }
+    .dd-item:last-child { border-bottom: none; }
+    .dd-item:hover, .dd-item.hi { background: #f2fde8; }
+    .dd-item .dd-cal { font-size: 0.75rem; color: var(--text-muted); }
+    .dd-empty { padding: 12px 14px; font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Arrow divider */
+    .arrow-col {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 56px;
+      font-size: 1.6rem;
+      color: var(--charcoal);
+      opacity: .45;
+    }
+
+    /* ── Button ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--charcoal);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(43,43,43,.35); }
+    .btn:active { transform: none; }
+
+    /* ── Results ── */
+    #results { margin-top: 28px; }
+
+    .res-card {
+      background: linear-gradient(135deg, var(--charcoal) 0%, #3a3a3a 100%);
+      border-radius: 18px;
+      padding: 28px;
+      color: white;
+      margin-bottom: 16px;
+      animation: up .35s ease;
+    }
+    .res-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; opacity: .65; margin-bottom: 16px; }
+    .res-line { font-size: 1rem; line-height: 1.7; }
+    .res-big { font-size: 2.2rem; font-weight: 900; color: var(--green); line-height: 1.1; margin: 8px 0; }
+    .res-kcal { font-size: 0.82rem; opacity: .75; margin-top: 10px; }
+
+    /* ── Macro card ── */
+    .macro-card {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      border: 1.5px solid var(--border);
+      margin-bottom: 16px;
+      animation: up .35s ease .08s both;
+    }
+    .macro-heading {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+    .legend { display: flex; gap: 20px; margin-bottom: 20px; }
+    .leg { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; font-weight: 600; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-a { background: var(--green); }
+
+    .dot-b { background: var(--purple); }
+
+    .m-row { margin-bottom: 18px; }
+    .m-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .m-name { font-size: 0.85rem; font-weight: 600; }
+    .m-vals { font-size: 0.8rem; color: var(--text-muted); }
+    .m-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .bar-bg { background: #f3f4f6; border-radius: 99px; height: 9px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+    .fill-a { background: var(--green); }
+
+    .fill-b { background: var(--purple); }
+
+    /* ── Note ── */
+    .note {
+      background: #fffbeb;
+      border: 1.5px solid #fcd34d;
+      border-radius: 14px;
+      padding: 16px 18px;
+      font-size: 0.85rem;
+      color: #92400e;
+      line-height: 1.6;
+      animation: up .35s ease .16s both;
+    }
+    .note strong { display: block; margin-bottom: 4px; color: #78350f; }
+
+    .hidden { display: none !important; }
+    @keyframes up { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
+
+    /* scrollbar */
+    .dropdown::-webkit-scrollbar { width: 6px; }
+    .dropdown::-webkit-scrollbar-track { background: transparent; }
+    .dropdown::-webkit-scrollbar-thumb { background: #d1fae5; border-radius: 99px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo"><em>NUNZIO</em><span>DIET</span></div>
+  </div>
+  <p class="tagline">SUBSTITUIÇÃO INTELIGENTE DE ALIMENTOS</p>
+</header>
+
+<div class="container">
+  <div class="grid-2">
+
+    <!-- Alimento A -->
+    <div class="card">
+      <div class="chip chip-a">Alimento atual</div>
+      <div class="form-group">
+        <label for="foodA">Nome do alimento</label>
+        <div class="ac-wrap">
+          <input type="text" id="foodA" placeholder="Ex: Arroz branco cozido" autocomplete="off">
+          <div class="dropdown" id="ddA"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="qtyA">Quantidade (g)</label>
+        <input type="number" id="qtyA" placeholder="Ex: 150" min="1" max="5000">
+      </div>
+    </div>
+
+    <!-- Seta -->
+    <div class="arrow-col">⇄</div>
+
+    <!-- Alimento B -->
+    <div class="card">
+      <div class="chip chip-b">Substituto</div>
+      <div class="form-group">
+        <label for="foodB">Nome do alimento</label>
+        <div class="ac-wrap">
+          <input type="text" id="foodB" placeholder="Ex: Batata inglesa cozida" autocomplete="off">
+          <div class="dropdown" id="ddB"></div>
+        </div>
+      </div>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-top:8px;line-height:1.5">
+        A quantidade equivalente em calorias será calculada automaticamente.
+      </p>
+    </div>
+
+  </div>
+
+  <button class="btn" onclick="calculate()">Calcular substituição →</button>
+
+  <!-- Resultados -->
+  <div id="results" class="hidden">
+
+    <div class="res-card">
+      <div class="res-label">Equivalência calórica</div>
+      <div class="res-line"><span id="r-qA"></span> de <strong id="r-nA"></strong></div>
+      <div class="res-line" style="opacity:.7">equivale a</div>
+      <div class="res-big" id="r-qB"></div>
+      <div class="res-line">de <strong id="r-nB"></strong></div>
+      <div class="res-kcal" id="r-kcal"></div>
+    </div>
+
+    <div class="macro-card">
+      <div class="macro-heading">Comparação de macronutrientes</div>
+      <div class="legend">
+        <div class="leg"><div class="dot dot-a"></div><span id="leg-a"></span></div>
+        <div class="leg"><div class="dot dot-b"></div><span id="leg-b"></span></div>
+      </div>
+      <div id="macroRows"></div>
+    </div>
+
+    <div class="note" id="noteBox"></div>
+
+  </div>
+</div>
+
+<script>
+// ── Banco de dados (per 100 g): { name, cal, prot, carb, fat, fib }
+const DB = [
+  // Cereais & tubérculos
+  { name:"Arroz branco cozido",       cal:128, prot:2.5, carb:27.9, fat:0.2, fib:0.4 },
+  { name:"Arroz integral cozido",     cal:124, prot:2.6, carb:25.8, fat:1.0, fib:1.8 },
+  { name:"Batata inglesa cozida",     cal:77,  prot:2.0, carb:17.0, fat:0.1, fib:2.2 },
+  { name:"Batata doce cozida",        cal:86,  prot:1.6, carb:20.1, fat:0.1, fib:3.0 },
+  { name:"Mandioca cozida",           cal:155, prot:1.4, carb:36.7, fat:0.3, fib:1.9 },
+  { name:"Inhame cozido",             cal:116, prot:1.5, carb:27.5, fat:0.1, fib:4.1 },
+  { name:"Macarrão cozido",           cal:157, prot:5.8, carb:30.6, fat:0.9, fib:1.8 },
+  { name:"Macarrão integral cozido",  cal:149, prot:5.4, carb:28.7, fat:1.1, fib:3.9 },
+  { name:"Aveia em flocos",           cal:394, prot:13.9,carb:66.6, fat:8.5, fib:9.1 },
+  { name:"Pão integral",              cal:253, prot:8.9, carb:43.0, fat:4.2, fib:7.6 },
+  { name:"Pão branco",                cal:275, prot:8.1, carb:50.5, fat:4.0, fib:2.3 },
+  { name:"Tapioca (goma)",            cal:346, prot:0.5, carb:84.7, fat:0.1, fib:0.9 },
+  { name:"Cuscuz cozido",             cal:112, prot:3.8, carb:23.2, fat:0.2, fib:1.4 },
+  { name:"Milho cozido",              cal:86,  prot:3.2, carb:18.7, fat:1.3, fib:2.7 },
+  { name:"Quinoa cozida",             cal:120, prot:4.4, carb:21.3, fat:1.9, fib:2.8 },
+  { name:"Polenta cozida",            cal:70,  prot:1.7, carb:15.6, fat:0.3, fib:0.5 },
+
+  // Proteínas animais
+  { name:"Peito de frango grelhado",  cal:159, prot:32.0,carb:0.0,  fat:2.9, fib:0.0 },
+  { name:"Coxa de frango assada",     cal:215, prot:26.6,carb:0.0,  fat:11.6,fib:0.0 },
+  { name:"Patinho bovino grelhado",   cal:219, prot:28.5,carb:0.0,  fat:11.5,fib:0.0 },
+  { name:"Alcatra grelhada",          cal:202, prot:29.0,carb:0.0,  fat:9.4, fib:0.0 },
+  { name:"Carne moída (patinho)",     cal:200, prot:26.0,carb:0.0,  fat:10.0,fib:0.0 },
+  { name:"Filé de tilápia grelhado",  cal:128, prot:26.2,carb:0.0,  fat:2.7, fib:0.0 },
+  { name:"Salmão grelhado",           cal:206, prot:28.0,carb:0.0,  fat:10.0,fib:0.0 },
+  { name:"Atum em água (lata)",       cal:103, prot:24.1,carb:0.0,  fat:0.5, fib:0.0 },
+  { name:"Sardinha em lata (água)",   cal:140, prot:21.0,carb:0.0,  fat:6.0, fib:0.0 },
+  { name:"Ovo inteiro cozido",        cal:155, prot:12.6,carb:1.1,  fat:10.6,fib:0.0 },
+  { name:"Clara de ovo cozida",       cal:52,  prot:10.9,carb:0.7,  fat:0.2, fib:0.0 },
+  { name:"Camarão cozido",            cal:99,  prot:20.1,carb:0.9,  fat:1.7, fib:0.0 },
+
+  // Laticínios
+  { name:"Queijo cottage",            cal:98,  prot:11.1,carb:3.4,  fat:4.3, fib:0.0 },
+  { name:"Iogurte grego natural",     cal:97,  prot:9.0, carb:3.6,  fat:5.0, fib:0.0 },
+  { name:"Iogurte natural desnatado", cal:37,  prot:3.8, carb:5.3,  fat:0.2, fib:0.0 },
+  { name:"Leite desnatado",           cal:35,  prot:3.4, carb:5.0,  fat:0.1, fib:0.0 },
+  { name:"Leite integral",            cal:60,  prot:3.1, carb:4.7,  fat:3.2, fib:0.0 },
+  { name:"Queijo minas frescal",      cal:264, prot:17.4,carb:2.4,  fat:20.2,fib:0.0 },
+  { name:"Requeijão light",           cal:152, prot:9.0, carb:4.4,  fat:11.0,fib:0.0 },
+  { name:"Whey protein",              cal:400, prot:80.0,carb:8.0,  fat:4.0, fib:0.0 },
+
+  // Leguminosas
+  { name:"Feijão cozido",             cal:76,  prot:4.8, carb:13.6, fat:0.5, fib:8.5 },
+  { name:"Feijão preto cozido",       cal:77,  prot:4.5, carb:14.0, fat:0.5, fib:8.7 },
+  { name:"Lentilha cozida",           cal:116, prot:9.0, carb:20.1, fat:0.4, fib:7.9 },
+  { name:"Grão de bico cozido",       cal:164, prot:8.9, carb:27.4, fat:2.6, fib:7.6 },
+  { name:"Ervilha cozida",            cal:84,  prot:5.4, carb:15.6, fat:0.2, fib:5.7 },
+  { name:"Soja cozida",               cal:173, prot:16.6,carb:9.9,  fat:9.0, fib:6.0 },
+
+  // Vegetais
+  { name:"Brócolis cozido",           cal:35,  prot:2.4, carb:7.2,  fat:0.4, fib:3.3 },
+  { name:"Couve-flor cozida",         cal:23,  prot:1.8, carb:4.5,  fat:0.3, fib:2.5 },
+  { name:"Abobrinha cozida",          cal:17,  prot:1.2, carb:3.1,  fat:0.3, fib:1.1 },
+  { name:"Espinafre cozido",          cal:23,  prot:2.2, carb:3.7,  fat:0.3, fib:2.4 },
+  { name:"Cenoura cozida",            cal:41,  prot:0.9, carb:9.6,  fat:0.2, fib:3.0 },
+  { name:"Chuchu cozido",             cal:25,  prot:1.0, carb:5.6,  fat:0.1, fib:1.7 },
+  { name:"Alface",                    cal:15,  prot:1.4, carb:2.3,  fat:0.2, fib:2.0 },
+  { name:"Tomate",                    cal:18,  prot:0.9, carb:3.9,  fat:0.2, fib:1.2 },
+  { name:"Pepino",                    cal:16,  prot:0.7, carb:3.6,  fat:0.1, fib:0.5 },
+  { name:"Berinjela cozida",          cal:24,  prot:0.8, carb:5.9,  fat:0.2, fib:2.5 },
+  { name:"Vagem cozida",              cal:31,  prot:1.8, carb:7.0,  fat:0.2, fib:3.4 },
+  { name:"Repolho cozido",            cal:18,  prot:1.0, carb:4.0,  fat:0.1, fib:2.3 },
+  { name:"Couve refogada",            cal:35,  prot:3.1, carb:5.4,  fat:0.7, fib:3.8 },
+  { name:"Beterraba cozida",          cal:43,  prot:1.6, carb:9.6,  fat:0.1, fib:2.0 },
+  { name:"Pimentão vermelho",         cal:31,  prot:1.0, carb:7.2,  fat:0.3, fib:2.1 },
+  { name:"Cogumelo shitake",          cal:34,  prot:2.2, carb:6.8,  fat:0.5, fib:2.5 },
+
+  // Frutas
+  { name:"Banana prata",              cal:98,  prot:1.3, carb:26.0, fat:0.1, fib:2.0 },
+  { name:"Maçã",                      cal:56,  prot:0.3, carb:15.2, fat:0.1, fib:1.3 },
+  { name:"Laranja",                   cal:37,  prot:1.0, carb:8.9,  fat:0.1, fib:2.4 },
+  { name:"Mamão papaia",              cal:40,  prot:0.5, carb:10.4, fat:0.1, fib:1.8 },
+  { name:"Abacate",                   cal:160, prot:2.0, carb:8.5,  fat:14.7,fib:6.7 },
+  { name:"Morango",                   cal:30,  prot:0.6, carb:7.1,  fat:0.4, fib:2.0 },
+  { name:"Melancia",                  cal:33,  prot:0.7, carb:8.1,  fat:0.2, fib:0.4 },
+  { name:"Uva",                       cal:69,  prot:0.7, carb:18.1, fat:0.2, fib:0.9 },
+  { name:"Manga",                     cal:65,  prot:0.5, carb:17.0, fat:0.3, fib:1.8 },
+  { name:"Abacaxi",                   cal:55,  prot:0.5, carb:13.7, fat:0.1, fib:1.0 },
+  { name:"Pera",                      cal:57,  prot:0.4, carb:15.5, fat:0.1, fib:3.1 },
+
+  // Gorduras & oleaginosas
+  { name:"Azeite de oliva",           cal:884, prot:0.0, carb:0.0,  fat:100.0,fib:0.0 },
+  { name:"Castanha do pará",          cal:656, prot:14.3,carb:15.1, fat:63.5,fib:7.5 },
+  { name:"Amendoim torrado",          cal:581, prot:26.0,carb:19.7, fat:46.1,fib:8.0 },
+  { name:"Pasta de amendoim",         cal:588, prot:25.0,carb:19.7, fat:49.9,fib:6.0 },
+  { name:"Castanha de caju",          cal:570, prot:18.5,carb:32.7, fat:43.9,fib:3.3 },
+  { name:"Amêndoa",                   cal:579, prot:21.2,carb:21.7, fat:49.9,fib:12.5},
+  { name:"Nozes",                     cal:654, prot:15.2,carb:13.7, fat:65.2,fib:6.7 },
+  { name:"Chia (semente)",            cal:486, prot:16.5,carb:42.1, fat:30.7,fib:34.4},
+  { name:"Linhaça (semente)",         cal:534, prot:18.3,carb:28.9, fat:42.2,fib:27.3},
+];
+
+// ── Autocomplete
+function setupAC(inputId, dropdownId) {
+  const inp = document.getElementById(inputId);
+  const dd  = document.getElementById(dropdownId);
+  let hi = -1, selected = null;
+
+  inp.addEventListener('input', () => {
+    const q = inp.value.trim().toLowerCase();
+    selected = null;
+    if (!q) { dd.classList.remove('open'); return; }
+
+    const matches = DB.filter(f => f.name.toLowerCase().includes(q)).slice(0, 10);
+    if (!matches.length) {
+      dd.innerHTML = `<div class="dd-empty">Nenhum alimento encontrado</div>`;
+    } else {
+      dd.innerHTML = matches.map((f, i) =>
+        `<div class="dd-item" data-idx="${i}" data-name="${f.name}">
+          ${f.name}
+          <span class="dd-cal">${f.cal} kcal / 100 g</span>
+        </div>`
+      ).join('');
+      dd.querySelectorAll('.dd-item').forEach(el => {
+        el.addEventListener('mousedown', e => e.preventDefault());
+        el.addEventListener('click', () => {
+          inp.value = el.dataset.name;
+          selected = DB.find(f => f.name === el.dataset.name);
+          dd.classList.remove('open');
+          inp.classList.remove('error');
+        });
+      });
+    }
+    hi = -1;
+    dd.classList.add('open');
+  });
+
+  inp.addEventListener('keydown', e => {
+    const items = dd.querySelectorAll('.dd-item');
+    if (e.key === 'ArrowDown') { hi = Math.min(hi+1, items.length-1); highlight(items); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { hi = Math.max(hi-1, 0); highlight(items); e.preventDefault(); }
+    else if (e.key === 'Enter' && hi >= 0) { items[hi].click(); }
+    else if (e.key === 'Escape') { dd.classList.remove('open'); }
+  });
+
+  function highlight(items) {
+    items.forEach((el, i) => el.classList.toggle('hi', i === hi));
+  }
+
+  inp.addEventListener('blur', () => setTimeout(() => dd.classList.remove('open'), 150));
+
+  return { getFood: () => selected || DB.find(f => f.name.toLowerCase() === inp.value.trim().toLowerCase()) };
+}
+
+const acA = setupAC('foodA', 'ddA');
+const acB = setupAC('foodB', 'ddB');
+
+// ── Calculation
+function calculate() {
+  const fA = acA.getFood();
+  const fB = acB.getFood();
+  const qA = parseFloat(document.getElementById('qtyA').value);
+
+  let ok = true;
+  if (!fA) { document.getElementById('foodA').classList.add('error'); ok = false; }
+  if (!fB) { document.getElementById('foodB').classList.add('error'); ok = false; }
+  if (!qA || qA <= 0) { document.getElementById('qtyA').classList.add('error'); ok = false; }
+  if (!ok) return;
+
+  document.getElementById('foodA').classList.remove('error');
+  document.getElementById('foodB').classList.remove('error');
+  document.getElementById('qtyA').classList.remove('error');
+
+  const kcalTotal = (qA / 100) * fA.cal;
+  const qB = (kcalTotal / fB.cal) * 100;
+
+  // Macros for the actual quantities
+  const mA = calcMacros(fA, qA);
+  const mB = calcMacros(fB, qB);
+
+  // ── Fill result card
+  document.getElementById('r-qA').textContent = fmt(qA) + ' g';
+  document.getElementById('r-nA').textContent = fA.name;
+  document.getElementById('r-qB').textContent = fmt(qB) + ' g';
+  document.getElementById('r-nB').textContent = fB.name;
+  document.getElementById('r-kcal').textContent =
+    `Ambas as porções têm aproximadamente ${Math.round(kcalTotal)} kcal`;
+
+  // ── Legend
+  document.getElementById('leg-a').textContent = `${fmt(qA)}g ${fA.name}`;
+  document.getElementById('leg-b').textContent = `${fmt(qB)}g ${fB.name}`;
+
+  // ── Macro bars
+  const macros = [
+    { label:'Calorias', unit:'kcal', a: mA.cal, b: mB.cal },
+    { label:'Proteína', unit:'g',    a: mA.prot,b: mB.prot },
+    { label:'Carboidratos', unit:'g',a: mA.carb,b: mB.carb },
+    { label:'Gordura', unit:'g',     a: mA.fat, b: mB.fat  },
+    { label:'Fibras',  unit:'g',     a: mA.fib, b: mB.fib  },
+  ];
+
+  const rows = document.getElementById('macroRows');
+  rows.innerHTML = macros.map(m => {
+    const max = Math.max(m.a, m.b, 0.1);
+    const pA = (m.a / max * 100).toFixed(1);
+    const pB = (m.b / max * 100).toFixed(1);
+    return `
+      <div class="m-row">
+        <div class="m-top">
+          <span class="m-name">${m.label}</span>
+          <span class="m-vals" style="color:#22c55e">${m.a.toFixed(1)} ${m.unit}</span>
+          <span style="font-size:.75rem;color:#aaa;padding:0 4px">vs</span>
+          <span class="m-vals" style="color:#7c3aed">${m.b.toFixed(1)} ${m.unit}</span>
+        </div>
+        <div class="m-bars">
+          <div class="bar-bg"><div class="bar-fill fill-a" style="width:${pA}%"></div></div>
+          <div class="bar-bg"><div class="bar-fill fill-b" style="width:${pB}%"></div></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // ── Note
+  const notes = [];
+  const protDiff = mB.prot - mA.prot;
+  const carbDiff = mB.carb - mA.carb;
+  if (Math.abs(protDiff) > 5)
+    notes.push(protDiff > 0
+      ? `⬆ O substituto tem ${protDiff.toFixed(1)}g a mais de proteína — ótimo para preservar massa muscular.`
+      : `⬇ O substituto tem ${Math.abs(protDiff).toFixed(1)}g a menos de proteína. Considere complementar com outra fonte proteica.`);
+  if (Math.abs(carbDiff) > 10)
+    notes.push(carbDiff > 0
+      ? `⬆ O substituto tem ${carbDiff.toFixed(1)}g a mais de carboidratos.`
+      : `⬇ O substituto tem ${Math.abs(carbDiff).toFixed(1)}g a menos de carboidratos — pode ser interessante para dietas low-carb.`);
+  if (qB > qA * 1.5)
+    notes.push(`📦 Você pode comer ${fmt(qB)}g do substituto — uma porção bem maior, ótimo para saciar mais!`);
+  if (qB < qA * 0.6)
+    notes.push(`⚠ O substituto é bem mais calórico: a porção equivalente é bem menor (${fmt(qB)}g). Atenção na medição.`);
+
+  const noteBox = document.getElementById('noteBox');
+  if (notes.length) {
+    noteBox.innerHTML = `<strong>Observações:</strong>` + notes.map(n => `<div style="margin-top:4px">${n}</div>`).join('');
+    noteBox.classList.remove('hidden');
+  } else {
+    noteBox.classList.add('hidden');
+  }
+
+  document.getElementById('results').classList.remove('hidden');
+  document.getElementById('results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function calcMacros(food, qty) {
+  const r = qty / 100;
+  return {
+    cal:  +(food.cal  * r).toFixed(1),
+    prot: +(food.prot * r).toFixed(1),
+    carb: +(food.carb * r).toFixed(1),
+    fat:  +(food.fat  * r).toFixed(1),
+    fib:  +(food.fib  * r).toFixed(1),
+  };
+}
+
+function fmt(n) {
+  return n % 1 === 0 ? n.toFixed(0) : n.toFixed(1);
+}
+
+// Enter key on quantity triggers calc
+document.getElementById('qtyA').addEventListener('keydown', e => {
+  if (e.key === 'Enter') calculate();
+});
+</script>
+</body>
+</html>
