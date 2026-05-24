@@ -19,7 +19,7 @@ Everything lives in `index.html`:
 
 ## Meal planner (`generatePlan()`)
 
-Modal opened by `openPlan()`. Inputs: `p-objetivo` (emagrecer / manter / massa) and `p-cal` (daily kcal target). `catFood(f)` maps each food to a category (`proteina`, `carbo`, `verdura`, `fruta`, `laticinios`, `oleaginosa`) via regex on the food name — uncategorized foods (oils, sugars, sweets) are excluded. `PLANOS` defines meal slots per objective, each with a calorie percentage and ordered category list. `pickFood(cat, used)` draws a random food from the category excluding already-used foods. Portion grams are calculated from the slot's calorie target, clamped by `LIMITES`. Modal closes on `Esc`, outside click, or `×`. Button is teal `#0f766e`.
+Modal opened by `openPlan()`. Inputs: `p-objetivo` (emagrecer / manter / massa) and `p-cal` (daily kcal target). Uses `PLAN_DB` — a 52-food curated subset of `DB` filtered by `PLAN_NAMES` (practical foods found in any major Brazilian supermarket: frango, ovo, atum, arroz, feijão, batata, pão, tapioca, fruits, vegetables, dairy). `catFood(f)` assigns each food to a category (`proteina`, `carbo`, `verdura`, `fruta`, `laticinios`) via regex. `PLANOS` defines 5–6 meal slots per objective, each with a calorie percentage (`pct`) and ordered category list. `pickFood(cat, used)` draws a random food from `PLAN_DB` for that category, excluding already-used foods. Portion grams are calculated from the slot's calorie target and clamped by `LIMITES`. Snack slots use `fruta` + `laticinios` (no oleaginosa). Modal closes on `Esc`, outside click, or `×`. Button is teal `#0f766e`.
 
 ## Button layout and colors
 
@@ -35,4 +35,4 @@ Four action buttons below the substitution form:
 - The calorie-equivalence formula must stay symmetrical: changing `qA` or swapping foods should always satisfy `qA * cal_A = qB * cal_B`.
 - The `--green` variable is used for interactive elements, header background, and result highlights — changing it affects the entire visual identity.
 - The app has no persistence, no backend, and no external requests.
-- New features that require user input should follow the modal pattern established for both calculators (`modal-bg` → `modal` → result area toggled with `.hidden`). Field IDs use a prefix: `w-` for water, `i-` for IMC.
+- New features that require user input should follow the modal pattern established for all calculators (`modal-bg` → `modal` → result area toggled with `.hidden`). Field IDs use a prefix: `w-` for water, `i-` for IMC, `p-` for the meal planner.
