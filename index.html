@@ -1142,31 +1142,56 @@ document.addEventListener('keydown', e => {
 
 // ── Sugestão de Refeições ────────────────────────────────────────
 
+// Alimentos práticos e de fácil acesso nos supermercados brasileiros
+const PLAN_NAMES = new Set([
+  // Proteínas
+  'Peito de frango grelhado', 'Coxa de frango assada', 'Atum em água (lata)',
+  'Ovo inteiro cozido', 'Clara de ovo cozida', 'Patinho bovino grelhado',
+  'Carne moída (patinho)', 'Filé de tilápia grelhado', 'Sardinha em lata (água)',
+  'Alcatra grelhada', 'Presunto cozido',
+  // Carboidratos
+  'Arroz branco cozido', 'Arroz integral cozido', 'Batata doce cozida',
+  'Batata inglesa cozida', 'Mandioca cozida', 'Macarrão cozido',
+  'Pão integral', 'Pão francês', 'Tapioca (goma)', 'Aveia em flocos',
+  'Feijão cozido', 'Feijão preto cozido', 'Cuscuz cozido', 'Milho cozido',
+  // Verduras
+  'Alface', 'Tomate', 'Brócolis cozido', 'Cenoura cozida', 'Abobrinha cozida',
+  'Chuchu cozido', 'Pepino', 'Repolho cozido', 'Espinafre cozido',
+  'Vagem cozida', 'Beterraba cozida', 'Couve refogada',
+  // Frutas
+  'Banana prata', 'Maçã', 'Laranja', 'Mamão papaia', 'Morango',
+  'Melancia', 'Uva', 'Manga', 'Abacaxi',
+  // Laticínios
+  'Iogurte natural desnatado', 'Iogurte grego natural', 'Queijo cottage',
+  'Leite desnatado', 'Leite integral', 'Queijo minas frescal',
+]);
+
+const PLAN_DB = DB.filter(f => PLAN_NAMES.has(f.name));
+
 function catFood(f) {
   const n = f.name.toLowerCase();
-  if (/frango|patinho|alcatra|coxão|músculo|acém|contrafilé|picanha|tilápia|salmão|atum|bacalhau|cação|corvina|linguado|merluza|robalo|truta|lagosta|pargo|pescada|lula|polvo|mariscos|peru|presunto|lombo suíno|pernil|fígado/.test(n)) return 'proteina';
-  if (/\bovo\b/.test(n)) return 'proteina';
-  if (/iogurte natural|iogurte grego|cottage|queijo minas|coalhada|leite desnatado|leite integral/.test(n)) return 'laticinios';
-  if (/arroz|macarrão|batata|mandioca|inhame|cará|tapioca|aveia|granola|pão|feijão|lentilha|grão-de-bico|canjica|fubá|milho verde|nhoque|cuscuz|quinoa|farinha de/.test(n)) return 'carbo';
-  if (/banana|maçã|laranja|mamão|morango|melancia|abacaxi|manga|uva|pêssego|tangerina|kiwi|limão|acerola|açaí|cajá|caju|carambola|goiaba|graviola|jabuticaba|maracujá|melão|nectarina|pitanga|umbu|figo|romã/.test(n)) return 'fruta';
-  if (/brócolis|alface|tomate|cenoura|chuchu|abobrinha|espinafre|repolho|pepino|pimentão|rúcula|agrião|chicória|coentro|salsinha|quiabo|maxixe|jiló|abóbora|palmito|rabanete|alho-poró|aspargo|erva-doce/.test(n)) return 'verdura';
-  if (/castanha|nozes|chia|linhaça|gergelim|semente de girassol|pistache|macadâmia|abacate|amendoim/.test(n)) return 'oleaginosa';
+  if (/frango|patinho|alcatra|tilápia|atum|sardinha|presunto|carne moída/.test(n)) return 'proteina';
+  if (/\bovo\b|clara de ovo/.test(n)) return 'proteina';
+  if (/iogurte natural|iogurte grego|cottage|queijo minas|leite desnatado|leite integral/.test(n)) return 'laticinios';
+  if (/arroz|macarrão|batata|mandioca|tapioca|aveia|pão|feijão|cuscuz|milho cozido/.test(n)) return 'carbo';
+  if (/banana|maçã|laranja|mamão|morango|melancia|uva|manga|abacaxi/.test(n)) return 'fruta';
+  if (/brócolis|alface|tomate|cenoura|chuchu|abobrinha|espinafre|repolho|pepino|vagem|beterraba|couve/.test(n)) return 'verdura';
   return null;
 }
 
 const PLANOS = {
   emagrecer: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','laticinios','fruta'] },
-    { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','oleaginosa'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','proteina','fruta'] },
+    { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
     { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina','carbo','verdura'] },
-    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['laticinios','fruta'] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['fruta','laticinios'] },
     { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','verdura'] },
   ],
   manter: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','laticinios','fruta'] },
-    { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','oleaginosa'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','proteina','fruta'] },
+    { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
     { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','carbo','verdura'] },
-    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['laticinios','oleaginosa'] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['fruta','laticinios'] },
     { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','carbo','verdura'] },
     { nome: '🌛 Ceia',          pct: 0.05, slots: ['laticinios'] },
   ],
@@ -1174,23 +1199,22 @@ const PLANOS = {
     { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','proteina','fruta'] },
     { nome: '🏋️ Lanche manhã',  pct: 0.15, slots: ['carbo','proteina'] },
     { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','carbo','verdura'] },
-    { nome: '💪 Pré/pós treino',pct: 0.10, slots: ['carbo','proteina'] },
+    { nome: '💪 Pré/pós treino',pct: 0.10, slots: ['carbo','fruta'] },
     { nome: '🌙 Jantar',        pct: 0.20, slots: ['proteina','carbo','verdura'] },
-    { nome: '🌛 Ceia',          pct: 0.05, slots: ['proteina'] },
+    { nome: '🌛 Ceia',          pct: 0.05, slots: ['proteina','laticinios'] },
   ],
 };
 
 const LIMITES = {
   proteina:   [80, 220],
-  carbo:      [50, 200],
+  carbo:      [50, 180],
   verdura:    [60, 280],
   fruta:      [80, 200],
   laticinios: [80, 200],
-  oleaginosa: [15,  40],
 };
 
 function pickFood(cat, used) {
-  const pool = DB.filter(f => catFood(f) === cat && !used.has(f.name) && f.cal > 0);
+  const pool = PLAN_DB.filter(f => catFood(f) === cat && !used.has(f.name));
   if (!pool.length) return null;
   return pool[Math.floor(Math.random() * pool.length)];
 }
