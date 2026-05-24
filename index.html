@@ -637,9 +637,10 @@
         <div>
           <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Nível de atividade</label>
           <select class="plan-select" id="h-ativ">
+            <option value="" disabled selected>Selecionar</option>
             <option value="1.2">Sedentário</option>
             <option value="1.375">Levemente ativo (1–3×/sem)</option>
-            <option value="1.55" selected>Moderado (3–5×/sem)</option>
+            <option value="1.55">Moderado (3–5×/sem)</option>
             <option value="1.725">Muito ativo (6–7×/sem)</option>
             <option value="1.9">Atleta / trabalho físico</option>
           </select>
@@ -1209,11 +1210,20 @@ const PLAN_DB = DB.filter(f => PLAN_NAMES.has(f.name));
 
 function catFood(f) {
   const n = f.name.toLowerCase();
-  if (/frango|patinho|alcatra|tilápia|atum|sardinha|presunto|carne moída/.test(n)) return 'proteina';
-  if (/\bovo\b|clara de ovo/.test(n)) return 'proteina';
+  // Proteínas matinais: ovos e atum (comuns no café da manhã brasileiro)
+  if (/\bovo\b|clara de ovo/.test(n)) return 'proteina_cafe';
+  if (/atum/.test(n))                 return 'proteina_cafe';
+  // Proteínas de almoço/jantar: carnes, frango, peixes
+  if (/frango|patinho|alcatra|tilápia|sardinha|presunto|carne moída/.test(n)) return 'proteina_refeicao';
+  // Laticínios: iogurte, cottage, queijo — lanches e café
   if (/iogurte natural|iogurte grego|cottage|queijo minas|leite desnatado|leite integral/.test(n)) return 'laticinios';
+  // Leguminosas: apenas almoço/jantar
   if (/feijão/.test(n)) return 'leguminosa';
-  if (/arroz|macarrão|batata|mandioca|tapioca|aveia|pão|cuscuz|milho cozido/.test(n)) return 'graos';
+  // Carboidratos matinais: pão, tapioca, aveia, cuscuz
+  if (/tapioca|aveia|pão|cuscuz/.test(n)) return 'graos_cafe';
+  // Carboidratos de refeição: arroz, batata, macarrão, mandioca
+  if (/arroz|macarrão|batata|mandioca|milho cozido/.test(n)) return 'graos_refeicao';
+  // Frutas e verduras
   if (/banana|maçã|laranja|mamão|morango|melancia|uva|manga|abacaxi/.test(n)) return 'fruta';
   if (/brócolis|alface|tomate|cenoura|chuchu|abobrinha|espinafre|repolho|pepino|vagem|beterraba|couve/.test(n)) return 'verdura';
   return null;
@@ -1221,37 +1231,39 @@ function catFood(f) {
 
 const PLANOS = {
   emagrecer: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos','proteina','fruta'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina','graos','leguminosa','verdura'] },
+    { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
     { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','graos','leguminosa','verdura'] },
+    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
   ],
   manter: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos','proteina','fruta'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','graos','leguminosa','verdura'] },
+    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
     { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','graos','leguminosa','verdura'] },
+    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
     { nome: '🌛 Ceia',          pct: 0.05, slots: ['laticinios'] },
   ],
   massa: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos','proteina','fruta'] },
-    { nome: '🏋️ Lanche manhã',  pct: 0.15, slots: ['graos','proteina'] },
-    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','graos','leguminosa','verdura'] },
-    { nome: '💪 Pré/pós treino',pct: 0.10, slots: ['graos','fruta'] },
-    { nome: '🌙 Jantar',        pct: 0.20, slots: ['proteina','graos','leguminosa','verdura'] },
-    { nome: '🌛 Ceia',          pct: 0.05, slots: ['proteina','laticinios'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
+    { nome: '🏋️ Lanche manhã',  pct: 0.15, slots: ['graos_cafe','proteina_cafe'] },
+    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
+    { nome: '💪 Pré/pós treino',pct: 0.10, slots: ['graos_cafe','fruta'] },
+    { nome: '🌙 Jantar',        pct: 0.20, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
+    { nome: '🌛 Ceia',          pct: 0.05, slots: ['proteina_cafe','laticinios'] },
   ],
 };
 
 const LIMITES = {
-  proteina:   [80, 220],
-  graos:      [50, 180],
-  leguminosa: [60, 150],
-  verdura:    [60, 280],
-  fruta:      [80, 200],
-  laticinios: [80, 200],
+  proteina_cafe:    [60, 180],
+  proteina_refeicao:[100, 220],
+  graos_cafe:       [50, 180],
+  graos_refeicao:   [80, 200],
+  leguminosa:       [60, 150],
+  verdura:          [60, 280],
+  fruta:            [80, 200],
+  laticinios:       [80, 200],
 };
 
 function pickFood(cat, used, db) {
@@ -1273,7 +1285,7 @@ function generatePlan() {
   const semLactose= document.getElementById('r-lactose').checked;
 
   let db = PLAN_DB;
-  if (isVeg)      db = db.filter(f => !/frango|atum|sardinha|patinho|alcatra|carne moída|presunto|tilápia/.test(f.name.toLowerCase()));
+  if (isVeg)      db = db.filter(f => !/frango|atum|sardinha|patinho|alcatra|carne moída|presunto|tilápia/.test(f.name.toLowerCase())); // mantém ovos e laticínios
   if (semGluten)  db = db.filter(f => !/pão|macarrão/.test(f.name.toLowerCase()));
   if (semLactose) db = db.filter(f => catFood(f) !== 'laticinios');
 
@@ -1372,6 +1384,7 @@ function calcHB() {
   const ativ   = parseFloat(document.getElementById('h-ativ').value);
 
   if (!sexo) { alert('Selecione o sexo.'); return; }
+  if (!ativ) { alert('Selecione o nível de atividade.'); return; }
   if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
     alert('Preencha todos os campos corretamente.');
     return;
