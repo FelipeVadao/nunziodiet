@@ -17,12 +17,17 @@ Everything lives in `index.html`:
 - **Water calculator** (`calcWater()`): Modal opened by `openWater()`. Uses WHO age-bracket factors (ml/kg): 18–30 → 40, 31–55 → 35, 56–65 → 30, 65+ → 25. Shows daily liters and glass count only — no BMI. Modal closes on `Esc`, outside click, or `×` button.
 - **IMC calculator** (`calcIMC()`): Modal opened by `openIMC()`. Requires peso (kg), altura (cm), and idade (years). `openIMC()` pre-fills `i-peso`, `i-altura`, `i-idade` from the water modal fields (`w-peso`, `w-altura`, `w-idade`) if already filled. `imcClass(imc)` maps the result to `{ cor, badge, grade, tip }` per WHO brackets. `imcHTML(imc, alturaM)` renders the full result with ideal weight range. CSS classes `.imc-verde` (healthy), `.imc-amarelo` (attention), `.imc-vermelho` (outside range) provide color-coded gradients.
 
+## Meal planner (`generatePlan()`)
+
+Modal opened by `openPlan()`. Inputs: `p-objetivo` (emagrecer / manter / massa) and `p-cal` (daily kcal target). `catFood(f)` maps each food to a category (`proteina`, `carbo`, `verdura`, `fruta`, `laticinios`, `oleaginosa`) via regex on the food name — uncategorized foods (oils, sugars, sweets) are excluded. `PLANOS` defines meal slots per objective, each with a calorie percentage and ordered category list. `pickFood(cat, used)` draws a random food from the category excluding already-used foods. Portion grams are calculated from the slot's calorie target, clamped by `LIMITES`. Modal closes on `Esc`, outside click, or `×`. Button is teal `#0f766e`.
+
 ## Button layout and colors
 
-Three action buttons below the substitution form:
+Four action buttons below the substitution form:
 - **Calcular substituição** — charcoal `#2B2B2B`
 - **Calcular ingestão de água** — navy `#1a3a5c`
 - **Calcular IMC** — purple `#5b21b6`
+- **Sugerir refeições do dia** — teal `#0f766e`
 
 ## Key conventions
 

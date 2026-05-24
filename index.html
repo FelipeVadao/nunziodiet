@@ -266,6 +266,103 @@
     .btn-imc:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(91,33,182,.4); }
     .btn-imc:active { transform: none; }
 
+    /* ── Botão Plano ── */
+    .btn-plan {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .4px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-plan:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,118,110,.4); }
+    .btn-plan:active { transform: none; }
+
+    /* ── Modal plano (mais largo) ── */
+    .modal-wide { max-width: 540px; }
+    .plan-select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: #fafafa;
+      color: #111827;
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .plan-select:focus { border-color: #0f766e; }
+    .plan-result { margin-top: 20px; max-height: 52vh; overflow-y: auto; padding-right: 2px; }
+    .meal-card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .meal-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #0f766e;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .meal-kcal {
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: #ccfbf1;
+      color: #0f766e;
+      padding: 2px 9px;
+      border-radius: 999px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .meal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.83rem;
+    }
+    .meal-item:last-child { border-bottom: none; }
+    .meal-item-name { color: #1e293b; }
+    .meal-item-qty { font-weight: 700; color: #0f766e; white-space: nowrap; margin-left: 8px; }
+    .plan-total {
+      background: #0f766e;
+      color: white;
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+    .plan-macros {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      opacity: .85;
+      font-weight: 600;
+    }
+
     /* ── Resultado IMC ── */
     .imc-result {
       margin-top: 20px;
@@ -476,6 +573,36 @@
   <button class="btn-imc" onclick="openIMC()">
     ⚖️ Calcular IMC
   </button>
+  <button class="btn-plan" onclick="openPlan()">
+    🍽️ Sugerir refeições do dia
+  </button>
+
+  <!-- Modal Plano -->
+  <div class="modal-bg hidden" id="planModal" onclick="closePlanOnBg(event)">
+    <div class="modal modal-wide">
+      <button class="modal-close" onclick="closePlan()">×</button>
+      <div class="modal-title">🍽️ Sugestão de refeições</div>
+      <div class="modal-sub">Cardápio diário baseado no seu objetivo</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div>
+          <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Objetivo</label>
+          <select class="plan-select" id="p-objetivo">
+            <option value="emagrecer">Emagrecer</option>
+            <option value="manter" selected>Manter peso</option>
+            <option value="massa">Ganhar massa</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Calorias / dia</label>
+          <input type="number" id="p-cal" placeholder="Ex: 2000" min="800" max="6000">
+        </div>
+      </div>
+
+      <button class="btn-calcwater" style="background:#0f766e;color:white" onclick="generatePlan()">Gerar cardápio</button>
+      <div id="planResult" class="hidden plan-result"></div>
+    </div>
+  </div>
 
   <!-- Modal IMC -->
   <div class="modal-bg hidden" id="imcModal" onclick="closeIMCOnBg(event)">
@@ -1010,8 +1137,134 @@ function closeWaterOnBg(e) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeWater(); closeIMC(); }
+  if (e.key === 'Escape') { closeWater(); closeIMC(); closePlan(); }
 });
+
+// ── Sugestão de Refeições ────────────────────────────────────────
+
+function catFood(f) {
+  const n = f.name.toLowerCase();
+  if (/frango|patinho|alcatra|coxão|músculo|acém|contrafilé|picanha|tilápia|salmão|atum|bacalhau|cação|corvina|linguado|merluza|robalo|truta|lagosta|pargo|pescada|lula|polvo|mariscos|peru|presunto|lombo suíno|pernil|fígado/.test(n)) return 'proteina';
+  if (/\bovo\b/.test(n)) return 'proteina';
+  if (/iogurte natural|iogurte grego|cottage|queijo minas|coalhada|leite desnatado|leite integral/.test(n)) return 'laticinios';
+  if (/arroz|macarrão|batata|mandioca|inhame|cará|tapioca|aveia|granola|pão|feijão|lentilha|grão-de-bico|canjica|fubá|milho verde|nhoque|cuscuz|quinoa|farinha de/.test(n)) return 'carbo';
+  if (/banana|maçã|laranja|mamão|morango|melancia|abacaxi|manga|uva|pêssego|tangerina|kiwi|limão|acerola|açaí|cajá|caju|carambola|goiaba|graviola|jabuticaba|maracujá|melão|nectarina|pitanga|umbu|figo|romã/.test(n)) return 'fruta';
+  if (/brócolis|alface|tomate|cenoura|chuchu|abobrinha|espinafre|repolho|pepino|pimentão|rúcula|agrião|chicória|coentro|salsinha|quiabo|maxixe|jiló|abóbora|palmito|rabanete|alho-poró|aspargo|erva-doce/.test(n)) return 'verdura';
+  if (/castanha|nozes|chia|linhaça|gergelim|semente de girassol|pistache|macadâmia|abacate|amendoim/.test(n)) return 'oleaginosa';
+  return null;
+}
+
+const PLANOS = {
+  emagrecer: [
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','laticinios','fruta'] },
+    { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','oleaginosa'] },
+    { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina','carbo','verdura'] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['laticinios','fruta'] },
+    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','verdura'] },
+  ],
+  manter: [
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','laticinios','fruta'] },
+    { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','oleaginosa'] },
+    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','carbo','verdura'] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['laticinios','oleaginosa'] },
+    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','carbo','verdura'] },
+    { nome: '🌛 Ceia',          pct: 0.05, slots: ['laticinios'] },
+  ],
+  massa: [
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','proteina','fruta'] },
+    { nome: '🏋️ Lanche manhã',  pct: 0.15, slots: ['carbo','proteina'] },
+    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','carbo','verdura'] },
+    { nome: '💪 Pré/pós treino',pct: 0.10, slots: ['carbo','proteina'] },
+    { nome: '🌙 Jantar',        pct: 0.20, slots: ['proteina','carbo','verdura'] },
+    { nome: '🌛 Ceia',          pct: 0.05, slots: ['proteina'] },
+  ],
+};
+
+const LIMITES = {
+  proteina:   [80, 220],
+  carbo:      [50, 200],
+  verdura:    [60, 280],
+  fruta:      [80, 200],
+  laticinios: [80, 200],
+  oleaginosa: [15,  40],
+};
+
+function pickFood(cat, used) {
+  const pool = DB.filter(f => catFood(f) === cat && !used.has(f.name) && f.cal > 0);
+  if (!pool.length) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function generatePlan() {
+  const objetivo = document.getElementById('p-objetivo').value;
+  const calDia   = parseFloat(document.getElementById('p-cal').value);
+  if (!calDia || calDia < 800 || calDia > 6000) {
+    alert('Informe um valor entre 800 e 6000 kcal.');
+    return;
+  }
+
+  const plano = PLANOS[objetivo];
+  const used  = new Set();
+  let totalCal = 0, totalProt = 0, totalCarb = 0, totalFat = 0;
+  let html = '';
+
+  for (const ref of plano) {
+    const refTarget  = calDia * ref.pct;
+    const calPerSlot = refTarget / ref.slots.length;
+    const items = [];
+    let refCalReal = 0;
+
+    for (const cat of ref.slots) {
+      const food = pickFood(cat, used);
+      if (!food) continue;
+      used.add(food.name);
+
+      const [mn, mx] = LIMITES[cat] || [30, 200];
+      let g = Math.round((calPerSlot / food.cal) * 100);
+      g = Math.min(Math.max(g, mn), mx);
+
+      const fac  = g / 100;
+      const cal  = Math.round(food.cal  * fac);
+      const prot = +(food.prot * fac).toFixed(1);
+      const carb = +(food.carb * fac).toFixed(1);
+      const fat  = +(food.fat  * fac).toFixed(1);
+      refCalReal += cal;
+      totalCal   += cal;
+      totalProt  += prot;
+      totalCarb  += carb;
+      totalFat   += fat;
+      items.push({ name: food.name, g, cal });
+    }
+
+    html += `<div class="meal-card">
+      <div class="meal-title">${ref.nome}<span class="meal-kcal">${refCalReal} kcal</span></div>
+      ${items.map(it => `<div class="meal-item">
+        <span class="meal-item-name">${it.name}</span>
+        <span class="meal-item-qty">${it.g}g · ${it.cal} kcal</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  html += `<div class="plan-total">
+    Total do dia: ${totalCal} kcal
+    <div class="plan-macros">
+      <span>Proteína ${totalProt.toFixed(0)}g</span>
+      <span>Carb ${totalCarb.toFixed(0)}g</span>
+      <span>Gordura ${totalFat.toFixed(0)}g</span>
+    </div>
+  </div>`;
+
+  const box = document.getElementById('planResult');
+  box.innerHTML = html;
+  box.classList.remove('hidden');
+}
+
+function openPlan() {
+  document.getElementById('planModal').classList.remove('hidden');
+  document.getElementById('planResult').classList.add('hidden');
+}
+function closePlan() { document.getElementById('planModal').classList.add('hidden'); }
+function closePlanOnBg(e) { if (e.target.id === 'planModal') closePlan(); }
 
 // ── Classificação IMC (OMS) ──────────────────────────────────────
 function imcClass(imc) {
