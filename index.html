@@ -650,8 +650,9 @@
         <div>
           <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Objetivo</label>
           <select class="plan-select" id="p-objetivo">
+            <option value="" disabled selected>Selecionar</option>
             <option value="emagrecer">Emagrecer</option>
-            <option value="manter" selected>Manter peso</option>
+            <option value="manter">Manter peso</option>
             <option value="massa">Ganhar massa</option>
           </select>
         </div>
@@ -1395,6 +1396,7 @@ function fmtQty(name, g, cal) {
 function generatePlan() {
   const objetivo  = document.getElementById('p-objetivo').value;
   const calDia    = parseFloat(document.getElementById('p-cal').value);
+  if (!objetivo) { alert('Selecione o objetivo.'); return; }
   if (!calDia || calDia < 800 || calDia > 6000) {
     alert('Informe um valor entre 800 e 6000 kcal.');
     return;
