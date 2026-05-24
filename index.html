@@ -1338,14 +1338,14 @@ const PLANOS = {
     { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
     { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
-    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['graos_cafe','proteina_cafe'] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: [['fruta','graos_cafe','laticinios','proteina_cafe'],['fruta','graos_cafe','laticinios','proteina_cafe']] },
     { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
   ],
   manter: [
     { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
     { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
-    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['graos_cafe','proteina_cafe'] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: [['fruta','graos_cafe','laticinios','proteina_cafe'],['fruta','graos_cafe','laticinios','proteina_cafe']] },
     { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
     { nome: '🌛 Ceia',          pct: 0.05, slots: ['laticinios'] },
   ],
@@ -1372,7 +1372,8 @@ const LIMITES = {
 };
 
 function pickFood(cat, used, db) {
-  const pool = (db || PLAN_DB).filter(f => catFood(f) === cat && !used.has(f.name));
+  const cats = Array.isArray(cat) ? cat : [cat];
+  const pool = (db || PLAN_DB).filter(f => cats.includes(catFood(f)) && !used.has(f.name));
   if (!pool.length) return null;
   return pool[Math.floor(Math.random() * pool.length)];
 }
