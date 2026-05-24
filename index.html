@@ -229,18 +229,80 @@
       gap: 8px;
       width: 100%;
       margin-top: 12px;
-      padding: 13px;
-      background: transparent;
-      color: var(--charcoal);
-      border: 2px solid var(--border);
+      padding: 14px;
+      background: #1a3a5c;
+      color: white;
+      border: none;
       border-radius: 12px;
-      font-size: 0.9rem;
-      font-weight: 600;
+      font-size: 0.95rem;
+      font-weight: 700;
       cursor: pointer;
-      transition: border-color .2s, background .2s;
+      letter-spacing: .4px;
+      transition: transform .2s, box-shadow .2s;
     }
-    .btn-water:hover { border-color: var(--green); background: #f2fde8; }
+    .btn-water:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,58,92,.4); }
+    .btn-water:active { transform: none; }
     .btn-water .drop { font-size: 1.1rem; }
+
+    /* ── Botão IMC ── */
+    .btn-imc {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      background: #5b21b6;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .4px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-imc:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(91,33,182,.4); }
+    .btn-imc:active { transform: none; }
+
+    /* ── Resultado IMC ── */
+    .imc-result {
+      margin-top: 20px;
+      border-radius: 14px;
+      padding: 20px;
+      color: white;
+      text-align: center;
+      animation: up .3s ease;
+    }
+    .imc-value { font-size: 3rem; font-weight: 900; line-height: 1; }
+    .imc-unit  { font-size: 0.85rem; opacity: .75; margin-bottom: 12px; }
+    .imc-badge {
+      display: inline-block;
+      padding: 5px 16px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: rgba(255,255,255,.2);
+      margin-bottom: 10px;
+    }
+    .imc-grade { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .imc-tip   { font-size: 0.82rem; opacity: .85; line-height: 1.5; }
+    .imc-range {
+      margin-top: 12px;
+      background: rgba(255,255,255,.12);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      opacity: .9;
+    }
+
+    /* Cores IMC */
+    .imc-verde   { background: linear-gradient(135deg, #166534, #16a34a); }
+    .imc-amarelo { background: linear-gradient(135deg, #92400e, #d97706); }
+    .imc-vermelho{ background: linear-gradient(135deg, #7f1d1d, #dc2626); }
 
     /* ── Modal ── */
     .modal-bg {
@@ -411,6 +473,36 @@
   <button class="btn-water" onclick="openWater()">
     <span class="drop">💧</span> Calcular ingestão diária de água
   </button>
+  <button class="btn-imc" onclick="openIMC()">
+    ⚖️ Calcular IMC
+  </button>
+
+  <!-- Modal IMC -->
+  <div class="modal-bg hidden" id="imcModal" onclick="closeIMCOnBg(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="closeIMC()">×</button>
+      <div class="modal-title">⚖️ Índice de Massa Corporal</div>
+      <div class="modal-sub">Classificação da OMS — peso e altura</div>
+
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label for="i-peso">Peso (kg)</label>
+          <input type="number" id="i-peso" placeholder="70" min="1" max="300">
+        </div>
+        <div class="modal-field">
+          <label for="i-altura">Altura (cm)</label>
+          <input type="number" id="i-altura" placeholder="170" min="50" max="250">
+        </div>
+        <div class="modal-field">
+          <label for="i-idade">Idade</label>
+          <input type="number" id="i-idade" placeholder="30" min="1" max="120">
+        </div>
+      </div>
+
+      <button class="btn-calcwater" style="background:#5b21b6" onclick="calcIMC()">Calcular</button>
+      <div id="imcResult" class="hidden"></div>
+    </div>
+  </div>
 
   <!-- Modal Água -->
   <div class="modal-bg hidden" id="waterModal" onclick="closeWaterOnBg(event)">
@@ -560,6 +652,177 @@ const DB = [
   { name:"Nozes",                     cal:654, prot:15.2,carb:13.7, fat:65.2,fib:6.7 },
   { name:"Chia (semente)",            cal:486, prot:16.5,carb:42.1, fat:30.7,fib:34.4},
   { name:"Linhaça (semente)",         cal:534, prot:18.3,carb:28.9, fat:42.2,fib:27.3},
+
+  // ── TACO — Cereais e derivados
+  { name:"Arroz parboilizado cozido", cal:130, prot:2.7, carb:28.2, fat:0.2, fib:0.6 },
+  { name:"Farinha de mandioca crua",  cal:361, prot:1.6, carb:87.9, fat:0.3, fib:6.4 },
+  { name:"Farinha de mandioca torrada",cal:364,prot:1.8, carb:88.0, fat:0.3, fib:6.5 },
+  { name:"Farinha de milho amarela",  cal:354, prot:6.9, carb:77.7, fat:2.9, fib:7.3 },
+  { name:"Farinha de trigo",          cal:360, prot:9.8, carb:75.1, fat:1.4, fib:2.3 },
+  { name:"Farinha de trigo integral", cal:340, prot:9.0, carb:72.5, fat:2.5, fib:9.5 },
+  { name:"Fubá de milho",             cal:358, prot:7.6, carb:77.1, fat:2.0, fib:4.7 },
+  { name:"Flocos de milho (cereal)",  cal:379, prot:8.5, carb:83.0, fat:1.5, fib:2.1 },
+  { name:"Granola",                   cal:387, prot:9.3, carb:64.2, fat:11.9,fib:7.4 },
+  { name:"Pão francês",               cal:300, prot:9.4, carb:58.6, fat:3.1, fib:2.3 },
+  { name:"Pão de hambúrguer",         cal:264, prot:8.5, carb:48.5, fat:4.4, fib:2.1 },
+  { name:"Biscoito cream cracker",    cal:442, prot:9.7, carb:67.8, fat:15.3,fib:2.2 },
+  { name:"Biscoito maisena",          cal:436, prot:6.7, carb:72.4, fat:13.5,fib:1.6 },
+  { name:"Biscoito de polvilho assado",cal:483,prot:3.0, carb:75.6, fat:19.1,fib:1.0 },
+  { name:"Canjica branca cozida",     cal:166, prot:3.4, carb:35.9, fat:0.6, fib:1.4 },
+  { name:"Canjica amarela cozida",    cal:174, prot:3.5, carb:38.1, fat:0.6, fib:1.5 },
+  { name:"Pipoca estourada",          cal:376, prot:12.8,carb:74.8, fat:4.4, fib:14.2},
+  { name:"Macarrão instantâneo cozido",cal:103,prot:2.6, carb:16.9, fat:3.2, fib:0.5 },
+  { name:"Nhoque de batata cozido",   cal:110, prot:2.5, carb:23.5, fat:0.6, fib:0.8 },
+  { name:"Pão de queijo",             cal:289, prot:6.5, carb:44.5, fat:9.5, fib:0.5 },
+  { name:"Panqueca",                  cal:196, prot:6.2, carb:26.8, fat:7.3, fib:0.8 },
+  { name:"Bolo simples",              cal:305, prot:5.8, carb:48.4, fat:10.1,fib:0.5 },
+
+  // ── TACO — Tubérculos
+  { name:"Cará cozido",               cal:98,  prot:2.0, carb:22.6, fat:0.2, fib:2.5 },
+  { name:"Batata baroa cozida",       cal:87,  prot:1.7, carb:20.4, fat:0.1, fib:2.2 },
+  { name:"Batata inglesa frita",      cal:243, prot:3.8, carb:33.0, fat:11.3,fib:2.4 },
+
+  // ── TACO — Leguminosas
+  { name:"Feijão fradinho cozido",    cal:76,  prot:4.8, carb:13.7, fat:0.5, fib:8.8 },
+  { name:"Feijão jalo cozido",        cal:76,  prot:4.8, carb:13.9, fat:0.4, fib:7.7 },
+  { name:"Feijão branco cozido",      cal:139, prot:9.1, carb:25.5, fat:0.5, fib:6.3 },
+  { name:"Feijão verde cozido",       cal:57,  prot:4.0, carb:9.4,  fat:0.5, fib:7.0 },
+  { name:"Amendoim cozido",           cal:339, prot:14.4,carb:13.7, fat:25.6,fib:7.4 },
+
+  // ── TACO — Verduras e hortaliças
+  { name:"Abóbora cabotiá cozida",    cal:27,  prot:1.2, carb:5.7,  fat:0.1, fib:1.4 },
+  { name:"Abóbora moranga cozida",    cal:35,  prot:1.1, carb:7.0,  fat:0.2, fib:0.8 },
+  { name:"Agrião",                    cal:17,  prot:2.4, carb:1.4,  fat:0.3, fib:2.6 },
+  { name:"Alho",                      cal:150, prot:6.2, carb:31.4, fat:0.5, fib:2.1 },
+  { name:"Alho-poró",                 cal:61,  prot:1.5, carb:14.1, fat:0.3, fib:1.8 },
+  { name:"Aspargo cozido",            cal:22,  prot:2.2, carb:3.8,  fat:0.2, fib:1.7 },
+  { name:"Cebola crua",               cal:40,  prot:1.2, carb:9.0,  fat:0.1, fib:1.7 },
+  { name:"Cebola cozida",             cal:29,  prot:1.0, carb:6.5,  fat:0.1, fib:1.1 },
+  { name:"Chicória",                  cal:19,  prot:1.6, carb:3.7,  fat:0.2, fib:1.6 },
+  { name:"Coentro",                   cal:23,  prot:2.1, carb:3.1,  fat:0.4, fib:2.8 },
+  { name:"Erva-doce (bulbo)",         cal:31,  prot:1.2, carb:6.4,  fat:0.2, fib:3.1 },
+  { name:"Jiló cozido",               cal:22,  prot:1.0, carb:4.6,  fat:0.2, fib:1.4 },
+  { name:"Maxixe cozido",             cal:18,  prot:1.0, carb:3.8,  fat:0.1, fib:1.6 },
+  { name:"Quiabo cozido",             cal:25,  prot:1.5, carb:5.2,  fat:0.1, fib:2.6 },
+  { name:"Palmito de pupunha",        cal:28,  prot:2.3, carb:4.8,  fat:0.4, fib:2.1 },
+  { name:"Rabanete",                  cal:15,  prot:0.8, carb:2.7,  fat:0.1, fib:1.6 },
+  { name:"Rúcula",                    cal:25,  prot:2.6, carb:2.9,  fat:0.4, fib:1.6 },
+  { name:"Salsinha",                  cal:36,  prot:3.7, carb:3.3,  fat:0.8, fib:5.0 },
+  { name:"Pimentão verde",            cal:23,  prot:0.8, carb:5.1,  fat:0.2, fib:1.4 },
+  { name:"Pimentão amarelo",          cal:27,  prot:0.9, carb:6.0,  fat:0.2, fib:1.7 },
+  { name:"Milho verde cru",           cal:87,  prot:3.2, carb:18.7, fat:1.3, fib:2.7 },
+  { name:"Mandioquinha cozida",       cal:87,  prot:1.7, carb:20.4, fat:0.1, fib:2.2 },
+
+  // ── TACO — Frutas
+  { name:"Acerola",                   cal:33,  prot:0.9, carb:7.4,  fat:0.2, fib:1.5 },
+  { name:"Açaí (polpa congelada)",    cal:58,  prot:1.1, carb:6.7,  fat:5.0, fib:2.6 },
+  { name:"Cajá",                      cal:39,  prot:0.8, carb:9.5,  fat:0.3, fib:1.3 },
+  { name:"Caju",                      cal:43,  prot:1.0, carb:9.7,  fat:0.3, fib:1.5 },
+  { name:"Carambola",                 cal:35,  prot:0.6, carb:8.0,  fat:0.3, fib:2.8 },
+  { name:"Coco fresco (polpa)",       cal:406, prot:4.0, carb:9.3,  fat:42.3,fib:13.4},
+  { name:"Goiaba branca",             cal:54,  prot:2.3, carb:10.4, fat:1.0, fib:6.2 },
+  { name:"Goiaba vermelha",           cal:54,  prot:2.3, carb:10.4, fat:1.0, fib:6.2 },
+  { name:"Graviola",                  cal:62,  prot:1.0, carb:15.3, fat:0.3, fib:1.9 },
+  { name:"Jabuticaba",                cal:58,  prot:0.7, carb:14.3, fat:0.2, fib:0.5 },
+  { name:"Kiwi",                      cal:61,  prot:1.0, carb:14.6, fat:0.6, fib:2.0 },
+  { name:"Limão tahiti",              cal:32,  prot:0.9, carb:6.8,  fat:0.3, fib:2.3 },
+  { name:"Maracujá (polpa)",          cal:68,  prot:2.4, carb:13.4, fat:1.8, fib:1.3 },
+  { name:"Melão",                     cal:35,  prot:0.7, carb:8.8,  fat:0.1, fib:0.3 },
+  { name:"Nectarina",                 cal:53,  prot:1.1, carb:12.1, fat:0.3, fib:1.4 },
+  { name:"Pêssego",                   cal:47,  prot:0.9, carb:11.4, fat:0.1, fib:1.5 },
+  { name:"Pitanga",                   cal:40,  prot:0.8, carb:9.4,  fat:0.4, fib:0.5 },
+  { name:"Tangerina",                 cal:38,  prot:0.9, carb:9.0,  fat:0.1, fib:1.5 },
+  { name:"Umbu",                      cal:43,  prot:0.5, carb:10.5, fat:0.2, fib:1.0 },
+  { name:"Figo",                      cal:67,  prot:1.2, carb:16.2, fat:0.3, fib:2.4 },
+  { name:"Romã",                      cal:68,  prot:1.0, carb:16.6, fat:0.6, fib:2.2 },
+
+  // ── TACO — Carnes e derivados
+  { name:"Acém bovino cozido",        cal:219, prot:29.1,carb:0.0,  fat:11.2,fib:0.0 },
+  { name:"Contrafilé bovino grelhado",cal:228, prot:29.3,carb:0.0,  fat:12.5,fib:0.0 },
+  { name:"Costela bovina cozida",     cal:268, prot:26.7,carb:0.0,  fat:18.5,fib:0.0 },
+  { name:"Coxão mole bovino grelhado",cal:219, prot:28.5,carb:0.0,  fat:11.5,fib:0.0 },
+  { name:"Fígado bovino refogado",    cal:179, prot:26.5,carb:3.8,  fat:6.3, fib:0.0 },
+  { name:"Músculo bovino cozido",     cal:213, prot:30.3,carb:0.0,  fat:10.3,fib:0.0 },
+  { name:"Picanha bovina grelhada",   cal:242, prot:27.8,carb:0.0,  fat:14.9,fib:0.0 },
+  { name:"Frango inteiro assado",     cal:237, prot:24.3,carb:0.0,  fat:15.4,fib:0.0 },
+  { name:"Frango (asa) assado",       cal:280, prot:28.1,carb:0.0,  fat:18.5,fib:0.0 },
+  { name:"Linguiça de frango grelhada",cal:197,prot:15.1,carb:0.8,  fat:15.3,fib:0.0 },
+  { name:"Linguiça de porco grelhada",cal:293, prot:14.8,carb:0.9,  fat:26.0,fib:0.0 },
+  { name:"Lombo suíno assado",        cal:218, prot:30.6,carb:0.0,  fat:11.0,fib:0.0 },
+  { name:"Peito de peru assado",      cal:159, prot:29.4,carb:0.0,  fat:4.5, fib:0.0 },
+  { name:"Pernil suíno assado",       cal:240, prot:29.5,carb:0.0,  fat:14.0,fib:0.0 },
+  { name:"Presunto cozido",           cal:112, prot:14.7,carb:1.7,  fat:5.6, fib:0.0 },
+
+  // ── TACO — Pescados e frutos do mar
+  { name:"Bacalhau dessalgado cozido",cal:134, prot:29.8,carb:0.0,  fat:1.9, fib:0.0 },
+  { name:"Cação cozido",              cal:113, prot:23.8,carb:0.0,  fat:2.0, fib:0.0 },
+  { name:"Corvina cozida",            cal:118, prot:24.1,carb:0.0,  fat:2.4, fib:0.0 },
+  { name:"Linguado cozido",           cal:92,  prot:18.9,carb:0.0,  fat:1.8, fib:0.0 },
+  { name:"Lula cozida",               cal:92,  prot:15.8,carb:3.6,  fat:1.6, fib:0.0 },
+  { name:"Merluza cozida",            cal:109, prot:22.9,carb:0.0,  fat:2.0, fib:0.0 },
+  { name:"Ostra crua",                cal:45,  prot:5.8, carb:4.3,  fat:1.3, fib:0.0 },
+  { name:"Pargo cozido",              cal:138, prot:25.8,carb:0.0,  fat:3.9, fib:0.0 },
+  { name:"Pescada cozida",            cal:127, prot:25.0,carb:0.0,  fat:3.3, fib:0.0 },
+  { name:"Polvo cozido",              cal:82,  prot:14.9,carb:3.7,  fat:1.0, fib:0.0 },
+  { name:"Robalo cozido",             cal:118, prot:25.0,carb:0.0,  fat:1.8, fib:0.0 },
+  { name:"Truta assada",              cal:180, prot:26.7,carb:0.0,  fat:8.0, fib:0.0 },
+  { name:"Lagosta cozida",            cal:98,  prot:20.6,carb:0.0,  fat:1.9, fib:0.0 },
+  { name:"Mariscos cozidos",          cal:113, prot:19.3,carb:4.5,  fat:2.1, fib:0.0 },
+
+  // ── TACO — Leite e derivados
+  { name:"Coalhada",                  cal:85,  prot:3.8, carb:11.8, fat:2.7, fib:0.0 },
+  { name:"Cream cheese",              cal:323, prot:7.2, carb:4.2,  fat:31.4,fib:0.0 },
+  { name:"Manteiga",                  cal:726, prot:0.4, carb:0.0,  fat:82.0,fib:0.0 },
+  { name:"Margarina",                 cal:720, prot:0.6, carb:0.7,  fat:80.0,fib:0.0 },
+  { name:"Queijo mussarela",          cal:328, prot:21.4,carb:3.5,  fat:26.0,fib:0.0 },
+  { name:"Queijo parmesão",           cal:452, prot:35.7,carb:3.2,  fat:33.0,fib:0.0 },
+  { name:"Queijo prato",              cal:356, prot:24.6,carb:0.9,  fat:28.2,fib:0.0 },
+  { name:"Queijo ricota",             cal:164, prot:11.4,carb:3.3,  fat:11.7,fib:0.0 },
+  { name:"Iogurte de morango",        cal:90,  prot:3.3, carb:14.5, fat:2.5, fib:0.0 },
+  { name:"Leite de coco",             cal:173, prot:1.5, carb:4.5,  fat:17.5,fib:0.0 },
+
+  // ── TACO — Óleos e gorduras
+  { name:"Óleo de canola",            cal:900, prot:0.0, carb:0.0,  fat:100.0,fib:0.0},
+  { name:"Óleo de girassol",          cal:900, prot:0.0, carb:0.0,  fat:100.0,fib:0.0},
+  { name:"Óleo de milho",             cal:900, prot:0.0, carb:0.0,  fat:100.0,fib:0.0},
+  { name:"Óleo de soja",              cal:900, prot:0.0, carb:0.0,  fat:100.0,fib:0.0},
+  { name:"Creme de leite",            cal:327, prot:2.4, carb:3.0,  fat:35.1,fib:0.0 },
+
+  // ── TACO — Açúcares e produtos açucarados
+  { name:"Açúcar branco",             cal:387, prot:0.0, carb:99.5, fat:0.0, fib:0.0 },
+  { name:"Açúcar mascavo",            cal:375, prot:0.2, carb:94.9, fat:0.1, fib:0.0 },
+  { name:"Mel de abelha",             cal:309, prot:0.3, carb:84.1, fat:0.0, fib:0.0 },
+  { name:"Melado de cana",            cal:279, prot:0.5, carb:73.9, fat:0.0, fib:0.0 },
+  { name:"Rapadura",                  cal:380, prot:0.9, carb:91.1, fat:0.4, fib:0.2 },
+  { name:"Brigadeiro",                cal:381, prot:5.7, carb:58.0, fat:15.1,fib:0.5 },
+  { name:"Goiabada",                  cal:296, prot:0.5, carb:76.3, fat:0.1, fib:1.7 },
+  { name:"Achocolatado em pó",        cal:378, prot:6.4, carb:82.0, fat:3.2, fib:3.8 },
+  { name:"Chocolate ao leite",        cal:544, prot:7.8, carb:57.9, fat:31.5,fib:2.5 },
+  { name:"Chocolate amargo (70%)",    cal:533, prot:9.0, carb:42.0, fat:38.0,fib:11.0},
+
+  // ── TACO — Sementes e oleaginosas
+  { name:"Gergelim",                  cal:582, prot:18.0,carb:20.5, fat:49.7,fib:11.9},
+  { name:"Semente de girassol",       cal:584, prot:24.3,carb:14.9, fat:49.4,fib:6.2 },
+  { name:"Pistache",                  cal:571, prot:20.6,carb:27.5, fat:44.4,fib:10.6},
+  { name:"Macadâmia",                 cal:718, prot:7.9, carb:13.8, fat:75.8,fib:8.6 },
+
+  // ── TACO — Bebidas
+  { name:"Suco de laranja natural",   cal:45,  prot:0.7, carb:10.4, fat:0.1, fib:0.3 },
+  { name:"Suco de uva integral",      cal:58,  prot:0.4, carb:14.0, fat:0.1, fib:0.2 },
+  { name:"Água de coco",              cal:22,  prot:0.7, carb:4.4,  fat:0.2, fib:0.2 },
+  { name:"Leite de soja",             cal:52,  prot:3.3, carb:6.3,  fat:1.8, fib:0.4 },
+
+  // ── TACO — Preparações e pratos típicos brasileiros
+  { name:"Farofa de manteiga",        cal:314, prot:2.5, carb:62.0, fat:6.5, fib:5.9 },
+  { name:"Feijão tropeiro",           cal:154, prot:8.3, carb:15.7, fat:6.3, fib:4.0 },
+  { name:"Tutu de feijão",            cal:127, prot:7.2, carb:16.1, fat:3.5, fib:4.9 },
+  { name:"Moqueca de peixe",          cal:112, prot:12.5,carb:3.5,  fat:5.8, fib:0.5 },
+  { name:"Galinhada",                 cal:190, prot:15.6,carb:20.5, fat:5.0, fib:1.0 },
+  { name:"Coxinha",                   cal:237, prot:9.8, carb:26.8, fat:10.5,fib:0.8 },
+  { name:"Acarajé",                   cal:260, prot:10.2,carb:18.7, fat:16.2,fib:3.7 },
+  { name:"Vatapá",                    cal:188, prot:9.2, carb:15.8, fat:10.0,fib:1.5 },
+  { name:"Vitamina de abacate",       cal:143, prot:2.5, carb:13.0, fat:9.6, fib:2.0 },
+  { name:"Vitamina de banana",        cal:90,  prot:3.5, carb:15.5, fat:1.8, fib:0.6 },
 ];
 
 // ── Autocomplete
@@ -747,11 +1010,51 @@ function closeWaterOnBg(e) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeWater();
+  if (e.key === 'Escape') { closeWater(); closeIMC(); }
 });
 
-// Fórmula OMS: ml/dia baseado em peso e idade
-// Referência: WHO Technical Report + Dietary Reference Intakes (IOM/WHO)
+// ── Classificação IMC (OMS) ──────────────────────────────────────
+function imcClass(imc) {
+  if (imc < 17.0) return { cor:'imc-vermelho', badge:'Magreza grau III',  grade:'Muito abaixo do peso', tip:'Seu IMC indica magreza severa. Procure acompanhamento médico com urgência.' };
+  if (imc < 18.5) return { cor:'imc-amarelo',  badge:'Abaixo do peso',    grade:'Levemente abaixo do peso ideal', tip:'Você está abaixo do peso ideal. Atenção à alimentação e consulte um nutricionista.' };
+  if (imc < 25.0) return { cor:'imc-verde',    badge:'Peso saudável ✓',   grade:'Faixa saudável pela OMS', tip:'Parabéns! Seu peso está dentro da faixa saudável recomendada pela OMS.' };
+  if (imc < 30.0) return { cor:'imc-amarelo',  badge:'Sobrepeso',         grade:'Acima do peso ideal', tip:'Você está na faixa de sobrepeso. Atenção à dieta e pratique exercícios regularmente.' };
+  if (imc < 35.0) return { cor:'imc-vermelho', badge:'Obesidade grau I',  grade:'Obesidade moderada', tip:'Obesidade grau I. Recomenda-se acompanhamento médico e mudanças no estilo de vida.' };
+  if (imc < 40.0) return { cor:'imc-vermelho', badge:'Obesidade grau II', grade:'Obesidade severa', tip:'Obesidade grau II. É importante buscar acompanhamento médico especializado.' };
+  return           { cor:'imc-vermelho', badge:'Obesidade grau III', grade:'Obesidade mórbida', tip:'Obesidade grau III. Busque acompanhamento médico com urgência.' };
+}
+
+function imcHTML(imc, alturaM) {
+  const cls  = imcClass(imc);
+  const pMin = (18.5 * alturaM * alturaM).toFixed(1);
+  const pMax = (24.9 * alturaM * alturaM).toFixed(1);
+  return `
+    <div class="imc-result ${cls.cor}">
+      <div class="imc-unit">Índice de Massa Corporal</div>
+      <div class="imc-value">${imc}</div>
+      <div class="imc-unit">kg/m²</div>
+      <div class="imc-badge">${cls.badge}</div>
+      <div class="imc-grade">${cls.grade}</div>
+      <div class="imc-tip">${cls.tip}</div>
+      <div class="imc-range">🎯 Peso ideal para sua altura: <strong>${pMin} – ${pMax} kg</strong></div>
+    </div>`;
+}
+
+// ── Calculadora de Água ──────────────────────────────────────────
+function openWater() {
+  document.getElementById('waterModal').classList.remove('hidden');
+  document.getElementById('waterResult').classList.add('hidden');
+  document.getElementById('w-peso').focus();
+}
+
+function closeWater() {
+  document.getElementById('waterModal').classList.add('hidden');
+}
+
+function closeWaterOnBg(e) {
+  if (e.target.id === 'waterModal') closeWater();
+}
+
 function calcWater() {
   const peso  = parseFloat(document.getElementById('w-peso').value);
   const altura = parseFloat(document.getElementById('w-altura').value);
@@ -762,21 +1065,17 @@ function calcWater() {
     return;
   }
 
-  // Fator ml/kg conforme faixa etária (OMS)
   let fator;
-  if      (idade <= 17)  fator = 40;
-  else if (idade <= 30)  fator = 40;
-  else if (idade <= 55)  fator = 35;
-  else if (idade <= 65)  fator = 30;
-  else                   fator = 25;
+  if      (idade <= 30) fator = 40;
+  else if (idade <= 55) fator = 35;
+  else if (idade <= 65) fator = 30;
+  else                  fator = 25;
 
-  const mlDia   = Math.round((peso * fator) / 50) * 50; // arredonda a 50ml
-  const litros  = (mlDia / 1000).toFixed(2).replace('.', ',');
-  const copos   = Math.round(mlDia / 250); // copo padrão 250ml
+  const mlDia  = Math.round((peso * fator) / 50) * 50;
+  const litros = (mlDia / 1000).toFixed(2).replace('.', ',');
+  const copos  = Math.round(mlDia / 250);
 
-  // IMC como info adicional
-  const altM = altura / 100;
-  const imc  = (peso / (altM * altM)).toFixed(1);
+  const faixaLabel = idade <= 30 ? '18–30' : idade <= 55 ? '31–55' : idade <= 65 ? '56–65' : '65+';
 
   const box = document.getElementById('waterResult');
   box.innerHTML = `
@@ -785,10 +1084,51 @@ function calcWater() {
       <div class="water-liters">${litros} L</div>
       <div class="water-glasses">≈ ${copos} copos de 250 ml por dia</div>
       <div class="water-tip">
-        <strong>Como distribuir:</strong> beba 1 copo ao acordar, 1 antes de cada refeição e 1 antes de dormir — e complete o restante ao longo do dia.<br><br>
-        <strong>Seu IMC:</strong> ${imc} kg/m²  &nbsp;|&nbsp;  <strong>Fator aplicado:</strong> ${fator} ml/kg (OMS, faixa ${idade <= 30 ? '18–30' : idade <= 55 ? '31–55' : idade <= 65 ? '56–65' : '65+'} anos)
+        <strong>Como distribuir:</strong> 1 copo ao acordar, 1 antes de cada refeição e 1 antes de dormir — complete o restante ao longo do dia.<br><br>
+        <strong>Fator aplicado:</strong> ${fator} ml/kg — faixa etária ${faixaLabel} anos (OMS)
       </div>
     </div>`;
+  box.classList.remove('hidden');
+}
+
+// ── Calculadora de IMC ───────────────────────────────────────────
+function openIMC() {
+  // Pré-preenche com dados da calculadora de água, se disponíveis
+  const wPeso   = document.getElementById('w-peso').value;
+  const wAltura = document.getElementById('w-altura').value;
+  const wIdade  = document.getElementById('w-idade').value;
+  if (wPeso)   document.getElementById('i-peso').value   = wPeso;
+  if (wAltura) document.getElementById('i-altura').value = wAltura;
+  if (wIdade)  document.getElementById('i-idade').value  = wIdade;
+
+  document.getElementById('imcModal').classList.remove('hidden');
+  document.getElementById('imcResult').classList.add('hidden');
+  document.getElementById('i-peso').focus();
+}
+
+function closeIMC() {
+  document.getElementById('imcModal').classList.add('hidden');
+}
+
+function closeIMCOnBg(e) {
+  if (e.target.id === 'imcModal') closeIMC();
+}
+
+function calcIMC() {
+  const peso   = parseFloat(document.getElementById('i-peso').value);
+  const altura = parseFloat(document.getElementById('i-altura').value);
+  const idade  = parseFloat(document.getElementById('i-idade').value);
+
+  if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
+    alert('Preencha todos os campos corretamente.');
+    return;
+  }
+
+  const altM = altura / 100;
+  const imc  = (peso / (altM * altM)).toFixed(1);
+
+  const box = document.getElementById('imcResult');
+  box.innerHTML = imcHTML(imc, altM);
   box.classList.remove('hidden');
 }
 </script>
