@@ -1422,71 +1422,154 @@ function catFood(f) {
 // Templates de combinações coerentes — cada entrada é [pool1, pool2, ...]
 // pool = string (categoria) | string[] (lista de categorias) | string[] com nomes de alimentos
 
+// ── Proteínas por contexto ──────────────────────────────────
+// Só carnes/frango/peixe grelhados/assados aparecem em refeições quentes
+const P_FRANGO   = ['Peito de frango grelhado','Coxa de frango assada'];
+const P_BOVINA   = ['Patinho bovino grelhado','Alcatra grelhada','Carne moída (patinho)'];
+const P_PEIXE    = ['Filé de tilápia grelhado'];
+const P_SUINO    = ['Lombo suíno assado'];
+const P_QUENTE   = [...P_FRANGO,...P_BOVINA,...P_PEIXE,...P_SUINO];
+// Proteínas de café/lanche (ovos, atum, whey, frios)
+const P_OVO      = ['Ovo inteiro cozido','Clara de ovo cozida'];
+const P_FRIOS    = ['Presunto cozido','Atum em água (lata)','Sardinha em lata (água)'];
+// Leguminosas
+const L_FEIJAO   = ['Feijão cozido','Feijão preto cozido'];
+const L_GRAO     = ['Grão de bico cozido'];
+const L_TODAS    = [...L_FEIJAO,...L_GRAO];
+// Carboidratos de refeição
+const C_ARROZ    = ['Arroz branco cozido','Arroz integral cozido'];
+const C_BATATA   = ['Batata doce cozida','Batata inglesa cozida','Batata baroa cozida'];
+const C_RAIZ     = ['Batata doce cozida','Batata inglesa cozida','Batata baroa cozida','Mandioca cozida'];
+
+// ── Templates ────────────────────────────────────────────────
+
 const T_CAFE = [
+  // Aveia
   [['Aveia em flocos'], ['Whey protein'], 'fruta'],
   [['Aveia em flocos'], ['Iogurte natural desnatado','Iogurte grego natural'], 'fruta'],
-  [['Pão integral','Pão francês'], ['Ovo inteiro cozido','Clara de ovo cozida'], 'fruta'],
-  [['Pão integral','Pão francês'], ['Queijo minas frescal','Queijo cottage','Iogurte grego natural'], 'fruta'],
-  [['Tapioca (goma)'], ['Ovo inteiro cozido','Clara de ovo cozida','Atum em água (lata)'], 'fruta'],
-  [['Tapioca (goma)'], ['Queijo minas frescal','Queijo cottage','Iogurte grego natural'], 'fruta'],
-  [['Cuscuz cozido'], ['Ovo inteiro cozido','Clara de ovo cozida'], 'fruta'],
+  [['Aveia em flocos'], P_OVO, 'fruta'],
+  // Pão
+  [['Pão integral','Pão francês'], P_OVO, 'fruta'],
+  [['Pão integral','Pão francês'], ['Queijo minas frescal','Queijo cottage'], 'fruta'],
+  [['Pão integral','Pão francês'], ['Presunto cozido','Queijo minas frescal'], 'fruta'],
+  [['Pão integral','Pão francês'], ['Atum em água (lata)','Sardinha em lata (água)'], 'fruta'],
+  [['Pão integral','Pão francês'], ['Iogurte grego natural','Queijo cottage'], 'fruta'],
+  // Tapioca
+  [['Tapioca (goma)'], P_OVO, 'fruta'],
+  [['Tapioca (goma)'], ['Atum em água (lata)'], 'fruta'],
+  [['Tapioca (goma)'], ['Queijo minas frescal','Queijo cottage'], 'fruta'],
+  [['Tapioca (goma)'], ['Iogurte grego natural'], 'fruta'],
+  // Cuscuz
+  [['Cuscuz cozido'], P_OVO, 'fruta'],
+  [['Cuscuz cozido'], ['Queijo minas frescal'], 'fruta'],
 ];
 
 const T_LANCHE_MANHA = [
   ['fruta', ['Iogurte natural desnatado','Iogurte grego natural']],
-  ['fruta', ['Queijo cottage','Iogurte grego natural']],
+  ['fruta', ['Queijo cottage']],
   ['fruta', ['Whey protein']],
+  [['Pão integral'], ['Queijo minas frescal','Queijo cottage']],
+  [['Iogurte grego natural'], 'fruta'],
 ];
 
 const T_LANCHE_MASSA = [
   [['Aveia em flocos'], ['Whey protein']],
-  [['Tapioca (goma)'], ['Whey protein','Iogurte grego natural']],
-  [['Pão integral','Pão francês','Tapioca (goma)'], ['Ovo inteiro cozido','Clara de ovo cozida','Atum em água (lata)']],
+  [['Tapioca (goma)'], ['Whey protein']],
+  [['Tapioca (goma)'], ['Iogurte grego natural']],
+  [['Pão integral','Pão francês'], P_OVO],
+  [['Pão integral','Pão francês'], ['Atum em água (lata)']],
+  [['Aveia em flocos'], ['Iogurte grego natural']],
 ];
 
-// Almoço: prato completo brasileiro (arroz/batata + proteína + leguminosa opcional + verdura + azeite)
+// Almoço — proteínas quentes apenas, combinações culturalmente coerentes
 const T_ALMOCO = [
-  [['Arroz branco cozido','Arroz integral cozido'], 'proteina_refeicao', 'leguminosa', 'verdura', 'gordura'],
-  [['Arroz branco cozido','Arroz integral cozido'], 'proteina_refeicao', 'leguminosa', 'verdura', 'gordura'],
-  [['Batata doce cozida','Batata inglesa cozida','Batata baroa cozida','Mandioca cozida'], 'proteina_refeicao', 'leguminosa', 'verdura', 'gordura'],
-  [['Macarrão cozido'], 'proteina_refeicao', 'verdura', 'gordura'],
+  // Frango + Arroz + Feijão + Verdura + Azeite (clássico)
+  [C_ARROZ, P_FRANGO, L_FEIJAO, 'verdura', 'gordura'],
+  [C_ARROZ, P_FRANGO, L_FEIJAO, 'verdura', 'gordura'],
+  // Carne bovina + Arroz + Feijão + Verdura + Azeite
+  [C_ARROZ, P_BOVINA, L_FEIJAO, 'verdura', 'gordura'],
+  // Tilápia + Arroz + Verdura + Azeite (peixe combina menos com feijão)
+  [C_ARROZ, P_PEIXE, 'verdura', 'gordura'],
+  // Frango + Batata/Raiz + Verdura + Azeite
+  [C_RAIZ, P_FRANGO, 'verdura', 'gordura'],
+  // Carne + Batata + Verdura + Azeite
+  [C_BATATA, P_BOVINA, 'verdura', 'gordura'],
+  // Macarrão + Carne moída + Verdura + Azeite (estilo bolonhesa)
+  [['Macarrão cozido'], ['Carne moída (patinho)'], 'verdura', 'gordura'],
+  // Macarrão + Frango + Verdura + Azeite
+  [['Macarrão cozido'], P_FRANGO, 'verdura', 'gordura'],
+  // Lombo + Arroz + Feijão + Verdura + Azeite
+  [C_ARROZ, P_SUINO, L_FEIJAO, 'verdura', 'gordura'],
+  // Frango + Arroz + Grão de bico + Verdura + Azeite (variação)
+  [C_ARROZ, P_FRANGO, L_GRAO, 'verdura', 'gordura'],
+  // Mandioca + Frango + Verdura + Azeite
+  [['Mandioca cozida'], P_FRANGO, 'verdura', 'gordura'],
 ];
 
-// Jantar para emagrecer: opção sem carbo pesado (mais leve)
+// Jantar emagrecer — foco em proteína + verdura, carbo menor ou sem
 const T_JANTAR_EMAGR = [
-  ['proteina_refeicao', 'verdura', 'gordura'],
-  [['Arroz branco cozido','Arroz integral cozido'], 'proteina_refeicao', 'verdura', 'gordura'],
-  [['Batata doce cozida','Batata inglesa cozida'], 'proteina_refeicao', 'verdura', 'gordura'],
-  [['Arroz branco cozido','Arroz integral cozido'], 'proteina_refeicao', 'leguminosa', 'verdura', 'gordura'],
+  // Low-carb: só proteína + verdura + azeite
+  [P_FRANGO, 'verdura', 'gordura'],
+  [P_PEIXE, 'verdura', 'gordura'],
+  [P_BOVINA, 'verdura', 'gordura'],
+  // Com batata doce (carbo de baixo IG)
+  [['Batata doce cozida'], P_FRANGO, 'verdura', 'gordura'],
+  [['Batata doce cozida'], P_PEIXE, 'verdura', 'gordura'],
+  // Arroz integral + frango/peixe + verdura
+  [['Arroz integral cozido'], P_FRANGO, 'verdura', 'gordura'],
+  [['Arroz integral cozido'], P_PEIXE, 'verdura', 'gordura'],
+  // Prato completo mas sem repetir o almoço
+  [C_ARROZ, P_FRANGO, L_FEIJAO, 'verdura', 'gordura'],
+  [C_ARROZ, P_BOVINA, 'verdura', 'gordura'],
 ];
 
-// Jantar para manter/massa: completo
+// Jantar manter/massa — prato completo
 const T_JANTAR = [
-  [['Arroz branco cozido','Arroz integral cozido'], 'proteina_refeicao', 'leguminosa', 'verdura', 'gordura'],
-  [['Arroz branco cozido','Arroz integral cozido'], 'proteina_refeicao', 'verdura', 'gordura'],
-  [['Batata doce cozida','Batata inglesa cozida','Batata baroa cozida','Mandioca cozida'], 'proteina_refeicao', 'verdura', 'gordura'],
+  [C_ARROZ, P_FRANGO, L_FEIJAO, 'verdura', 'gordura'],
+  [C_ARROZ, P_BOVINA, L_FEIJAO, 'verdura', 'gordura'],
+  [C_ARROZ, P_PEIXE, 'verdura', 'gordura'],
+  [C_ARROZ, P_SUINO, L_FEIJAO, 'verdura', 'gordura'],
+  [C_RAIZ, P_FRANGO, 'verdura', 'gordura'],
+  [C_BATATA, P_BOVINA, 'verdura', 'gordura'],
+  [['Macarrão cozido'], ['Carne moída (patinho)'], 'verdura', 'gordura'],
+  [['Macarrão cozido'], P_FRANGO, 'verdura', 'gordura'],
+  [C_ARROZ, P_FRANGO, L_GRAO, 'verdura', 'gordura'],
 ];
 
 const T_PRETREINO = [
-  [['Aveia em flocos','Tapioca (goma)'], 'fruta'],
-  [['Aveia em flocos'], ['Banana prata','Manga','Melancia','Maçã','Laranja']],
+  [['Aveia em flocos'], ['Banana prata','Manga','Melancia','Maçã']],
+  [['Tapioca (goma)'], ['Banana prata','Manga','Laranja']],
+  [['Aveia em flocos'], ['Whey protein']],
+  [C_ARROZ, 'fruta'],
 ];
 
 const T_CEIA_MANTER = [
-  [['Iogurte natural desnatado','Iogurte grego natural','Queijo cottage']],
+  [['Iogurte natural desnatado','Iogurte grego natural']],
+  [['Queijo cottage']],
+  [['Iogurte grego natural']],
 ];
 
 const T_CEIA_MASSA = [
-  [['Whey protein'], ['Iogurte natural desnatado','Iogurte grego natural','Queijo cottage']],
+  [['Whey protein'], ['Iogurte natural desnatado','Iogurte grego natural']],
+  [['Whey protein'], ['Queijo cottage']],
   [['Clara de ovo cozida'], ['Queijo cottage','Iogurte grego natural']],
 ];
 
 const T_LANCHE = [
-  ['fruta', ['Iogurte natural desnatado','Iogurte grego natural','Queijo cottage']],
+  // Fruta + laticínio
+  ['fruta', ['Iogurte natural desnatado','Iogurte grego natural']],
+  ['fruta', ['Queijo cottage']],
   ['fruta', ['Whey protein']],
-  [['Pão integral','Pão francês'], ['Queijo minas frescal','Queijo cottage','Atum em água (lata)']],
-  [['Tapioca (goma)'], ['Whey protein','Iogurte natural desnatado','Iogurte grego natural']],
-  [['Aveia em flocos'], ['Whey protein','Iogurte natural desnatado','Iogurte grego natural']],
+  // Pão + proteína/laticínio
+  [['Pão integral','Pão francês'], ['Queijo minas frescal','Queijo cottage']],
+  [['Pão integral','Pão francês'], ['Presunto cozido','Queijo minas frescal']],
+  [['Pão integral','Pão francês'], ['Atum em água (lata)']],
+  // Tapioca + proteína
+  [['Tapioca (goma)'], ['Queijo minas frescal','Queijo cottage']],
+  [['Tapioca (goma)'], ['Whey protein']],
+  // Aveia + proteína
+  [['Aveia em flocos'], ['Whey protein']],
+  [['Aveia em flocos'], ['Iogurte natural desnatado','Iogurte grego natural']],
 ];
 
 const PLANOS = {
