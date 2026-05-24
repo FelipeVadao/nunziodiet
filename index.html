@@ -1186,7 +1186,7 @@ document.addEventListener('keydown', e => {
 const PLAN_NAMES = new Set([
   // Proteínas
   'Peito de frango grelhado', 'Coxa de frango assada', 'Atum em água (lata)',
-  'Ovo inteiro cozido', 'Clara de ovo cozida', 'Patinho bovino grelhado',
+  'Ovo inteiro cozido', 'Clara de ovo cozida', 'Whey protein', 'Patinho bovino grelhado',
   'Carne moída (patinho)', 'Filé de tilápia grelhado', 'Sardinha em lata (água)',
   'Alcatra grelhada', 'Presunto cozido',
   // Carboidratos
@@ -1210,9 +1210,9 @@ const PLAN_DB = DB.filter(f => PLAN_NAMES.has(f.name));
 
 function catFood(f) {
   const n = f.name.toLowerCase();
-  // Proteínas matinais: ovos e atum (comuns no café da manhã brasileiro)
+  // Proteínas matinais: ovos, atum e whey (comuns no café da manhã brasileiro)
   if (/\bovo\b|clara de ovo/.test(n)) return 'proteina_cafe';
-  if (/atum/.test(n))                 return 'proteina_cafe';
+  if (/atum|whey/.test(n))            return 'proteina_cafe';
   // Proteínas de almoço/jantar: carnes, frango, peixes
   if (/frango|patinho|alcatra|tilápia|sardinha|presunto|carne moída/.test(n)) return 'proteina_refeicao';
   // Laticínios: iogurte, cottage, queijo — lanches e café
@@ -1274,15 +1274,17 @@ function pickFood(cat, used, db) {
 
 function fmtQty(name, g, cal) {
   const n = name.toLowerCase();
-  let unidade = '';
-  if (/clara de ovo/.test(n)) {
-    const qty = Math.max(1, Math.round(g / 33));
-    unidade = ` (${qty} clara${qty > 1 ? 's' : ''})`;
-  } else if (/\bovo\b/.test(n)) {
-    const qty = Math.max(1, Math.round(g / 50));
-    unidade = ` (${qty} ovo${qty > 1 ? 's' : ''})`;
-  }
-  return `${g}g${unidade} · ${cal} kcal`;
+  let u = '';
+  if      (/clara de ovo/.test(n))  { const q = Math.max(1,Math.round(g/33));  u = ` (${q} clara${q>1?'s':''})`; }
+  else if (/\bovo\b/.test(n))       { const q = Math.max(1,Math.round(g/50));  u = ` (${q} ovo${q>1?'s':''})`; }
+  else if (/whey/.test(n))          { const q = Math.max(1,Math.round(g/30));  u = ` (${q} dose${q>1?'s':''})`; }
+  else if (/pão francês/.test(n))   { const q = Math.max(1,Math.round(g/50));  u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/pão integral/.test(n))  { const q = Math.max(1,Math.round(g/25));  u = ` (${q} fatia${q>1?'s':''})`; }
+  else if (/banana/.test(n))        { const q = Math.max(1,Math.round(g/80));  u = ` (${q} banana${q>1?'s':''})`; }
+  else if (/maçã/.test(n))          { const q = Math.max(1,Math.round(g/130)); u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/laranja/.test(n))       { const q = Math.max(1,Math.round(g/130)); u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/morango/.test(n))       { const q = Math.max(1,Math.round(g/15));  u = ` (${q} unidade${q>1?'s':''})`; }
+  return `${g}g${u} · ${cal} kcal`;
 }
 
 function generatePlan() {
