@@ -993,6 +993,36 @@ function norm(s) {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  const row = Array.from({length: n + 1}, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    let prev = row[0]; row[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const tmp = row[j];
+      row[j] = a[i-1] === b[j-1] ? prev : 1 + Math.min(prev, row[j], row[j-1]);
+      prev = tmp;
+    }
+  }
+  return row[n];
+}
+
+function fuzzyScore(foodName, query) {
+  const fn = norm(foodName);
+  const q  = norm(query);
+  if (!q || q.length < 2) return Infinity;
+  if (fn.includes(q)) return 0;
+  const words = fn.split(/\s+/);
+  let min = Infinity;
+  for (const w of words) {
+    if (Math.abs(w.length - q.length) > 2) continue;
+    const d = levenshtein(q, w.slice(0, q.length + 1));
+    if (d <= 2) min = Math.min(min, d);
+  }
+  return min;
+}
+
 function setupAC(inputId, dropdownId) {
   const inp = document.getElementById(inputId);
   const dd  = document.getElementById(dropdownId);
@@ -1003,7 +1033,12 @@ function setupAC(inputId, dropdownId) {
     selected = null;
     if (!q) { dd.classList.remove('open'); return; }
 
-    const matches = DB.filter(f => norm(f.name).includes(q)).slice(0, 10);
+    const matches = DB
+      .map(f => ({ f, s: fuzzyScore(f.name, inp.value.trim()) }))
+      .filter(x => x.s < Infinity)
+      .sort((a, b) => a.s - b.s)
+      .slice(0, 10)
+      .map(x => x.f);
     if (!matches.length) {
       dd.innerHTML = `<div class="dd-empty">Nenhum alimento encontrado</div>`;
     } else {
@@ -1188,12 +1223,15 @@ const PLAN_NAMES = new Set([
   'Peito de frango grelhado', 'Coxa de frango assada', 'Atum em água (lata)',
   'Ovo inteiro cozido', 'Clara de ovo cozida', 'Whey protein', 'Patinho bovino grelhado',
   'Carne moída (patinho)', 'Filé de tilápia grelhado', 'Sardinha em lata (água)',
-  'Alcatra grelhada', 'Presunto cozido',
+  'Alcatra grelhada', 'Presunto cozido', 'Lombo suíno assado',
   // Carboidratos
-  'Arroz branco cozido', 'Arroz integral cozido', 'Batata doce cozida',
-  'Batata inglesa cozida', 'Mandioca cozida', 'Macarrão cozido',
+  'Arroz branco cozido', 'Arroz integral cozido', 'Arroz parboilizado cozido',
+  'Batata doce cozida', 'Batata inglesa cozida', 'Batata baroa cozida',
+  'Mandioca cozida', 'Macarrão cozido',
   'Pão integral', 'Pão francês', 'Tapioca (goma)', 'Aveia em flocos',
-  'Feijão cozido', 'Feijão preto cozido', 'Cuscuz cozido', 'Milho cozido',
+  'Feijão cozido', 'Feijão preto cozido', 'Grão de bico cozido', 'Cuscuz cozido', 'Milho cozido',
+  // Gorduras
+  'Azeite de oliva',
   // Verduras
   'Alface', 'Tomate', 'Brócolis cozido', 'Cenoura cozida', 'Abobrinha cozida',
   'Chuchu cozido', 'Pepino', 'Repolho cozido', 'Espinafre cozido',
@@ -1213,12 +1251,14 @@ function catFood(f) {
   // Proteínas matinais: ovos, atum e whey (comuns no café da manhã brasileiro)
   if (/\bovo\b|clara de ovo/.test(n)) return 'proteina_cafe';
   if (/atum|whey/.test(n))            return 'proteina_cafe';
+  // Gorduras saudáveis
+  if (/azeite/.test(n)) return 'gordura';
   // Proteínas de almoço/jantar: carnes, frango, peixes
-  if (/frango|patinho|alcatra|tilápia|sardinha|presunto|carne moída/.test(n)) return 'proteina_refeicao';
+  if (/frango|patinho|alcatra|tilápia|sardinha|presunto|carne moída|lombo suíno/.test(n)) return 'proteina_refeicao';
   // Laticínios: iogurte, cottage, queijo — lanches e café
   if (/iogurte natural|iogurte grego|cottage|queijo minas|leite desnatado|leite integral/.test(n)) return 'laticinios';
   // Leguminosas: apenas almoço/jantar
-  if (/feijão/.test(n)) return 'leguminosa';
+  if (/feijão|grão de bico/.test(n)) return 'leguminosa';
   // Carboidratos matinais: pão, tapioca, aveia, cuscuz
   if (/tapioca|aveia|pão|cuscuz/.test(n)) return 'graos_cafe';
   // Carboidratos de refeição: arroz, batata, macarrão, mandioca
@@ -1233,24 +1273,24 @@ const PLANOS = {
   emagrecer: [
     { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
-    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
+    { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['graos_cafe','proteina_cafe'] },
+    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
   ],
   manter: [
     { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
-    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
+    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['graos_cafe','proteina_cafe'] },
+    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
     { nome: '🌛 Ceia',          pct: 0.05, slots: ['laticinios'] },
   ],
   massa: [
     { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
     { nome: '🏋️ Lanche manhã',  pct: 0.15, slots: ['graos_cafe','proteina_cafe'] },
-    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
+    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
     { nome: '💪 Pré/pós treino',pct: 0.10, slots: ['graos_cafe','fruta'] },
-    { nome: '🌙 Jantar',        pct: 0.20, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura'] },
+    { nome: '🌙 Jantar',        pct: 0.20, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
     { nome: '🌛 Ceia',          pct: 0.05, slots: ['proteina_cafe','laticinios'] },
   ],
 };
@@ -1264,6 +1304,7 @@ const LIMITES = {
   verdura:          [60, 280],
   fruta:            [80, 200],
   laticinios:       [80, 200],
+  gordura:          [10, 20],
 };
 
 function pickFood(cat, used, db) {
@@ -1284,6 +1325,7 @@ function fmtQty(name, g, cal) {
   else if (/maçã/.test(n))          { const q = Math.max(1,Math.round(g/130)); u = ` (${q} unidade${q>1?'s':''})`; }
   else if (/laranja/.test(n))       { const q = Math.max(1,Math.round(g/130)); u = ` (${q} unidade${q>1?'s':''})`; }
   else if (/morango/.test(n))       { const q = Math.max(1,Math.round(g/15));  u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/azeite/.test(n))        { const q = Math.max(1,Math.round(g/12));  u = ` (${q} col. sopa)`; }
   return `${g}g${u} · ${cal} kcal`;
 }
 
@@ -1300,7 +1342,7 @@ function generatePlan() {
   const semLactose= document.getElementById('r-lactose').checked;
 
   let db = PLAN_DB;
-  if (isVeg)      db = db.filter(f => !/frango|atum|sardinha|patinho|alcatra|carne moída|presunto|tilápia/.test(f.name.toLowerCase())); // mantém ovos e laticínios
+  if (isVeg)      db = db.filter(f => !/frango|atum|sardinha|patinho|alcatra|carne moída|presunto|tilápia|lombo suíno/.test(f.name.toLowerCase())); // mantém ovos e laticínios
   if (semGluten)  db = db.filter(f => !/pão|macarrão/.test(f.name.toLowerCase()));
   if (semLactose) db = db.filter(f => catFood(f) !== 'laticinios');
 
@@ -1320,7 +1362,7 @@ function generatePlan() {
     for (const cat of ref.slots) {
       const food = pickFood(cat, used, db);
       if (!food) continue;
-      used.add(food.name);
+      if (cat !== 'gordura') used.add(food.name);
 
       const [mn, mx] = LIMITES[cat] || [30, 200];
       let g = Math.round((calPerSlot / food.cal) * 100);
