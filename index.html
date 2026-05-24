@@ -598,6 +598,21 @@
         </div>
       </div>
 
+      <div style="margin-bottom:14px">
+        <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:8px">Restrições alimentares</label>
+        <div style="display:flex;gap:18px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;cursor:pointer;color:#374151">
+            <input type="checkbox" id="r-veg" style="width:15px;height:15px;accent-color:#0f766e"> Vegetariano
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;cursor:pointer;color:#374151">
+            <input type="checkbox" id="r-gluten" style="width:15px;height:15px;accent-color:#0f766e"> Sem glúten
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;cursor:pointer;color:#374151">
+            <input type="checkbox" id="r-lactose" style="width:15px;height:15px;accent-color:#0f766e"> Sem lactose
+          </label>
+        </div>
+      </div>
+
       <button class="btn-calcwater" style="background:#0f766e;color:white" onclick="generatePlan()">Gerar cardápio</button>
       <div id="planResult" class="hidden plan-result"></div>
     </div>
@@ -614,6 +629,7 @@
         <div>
           <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Sexo</label>
           <select class="plan-select" id="h-sexo">
+            <option value="" disabled selected>Selecionar</option>
             <option value="m">Masculino</option>
             <option value="f">Feminino</option>
           </select>
@@ -972,17 +988,21 @@ const DB = [
 ];
 
 // ── Autocomplete
+function norm(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
 function setupAC(inputId, dropdownId) {
   const inp = document.getElementById(inputId);
   const dd  = document.getElementById(dropdownId);
   let hi = -1, selected = null;
 
   inp.addEventListener('input', () => {
-    const q = inp.value.trim().toLowerCase();
+    const q = norm(inp.value.trim());
     selected = null;
     if (!q) { dd.classList.remove('open'); return; }
 
-    const matches = DB.filter(f => f.name.toLowerCase().includes(q)).slice(0, 10);
+    const matches = DB.filter(f => norm(f.name).includes(q)).slice(0, 10);
     if (!matches.length) {
       dd.innerHTML = `<div class="dd-empty">Nenhum alimento encontrado</div>`;
     } else {
@@ -1020,7 +1040,7 @@ function setupAC(inputId, dropdownId) {
 
   inp.addEventListener('blur', () => setTimeout(() => dd.classList.remove('open'), 150));
 
-  return { getFood: () => selected || DB.find(f => f.name.toLowerCase() === inp.value.trim().toLowerCase()) };
+  return { getFood: () => selected || DB.find(f => norm(f.name) === norm(inp.value.trim())) };
 }
 
 const acA = setupAC('foodA', 'ddA');
@@ -1192,7 +1212,8 @@ function catFood(f) {
   if (/frango|patinho|alcatra|tilápia|atum|sardinha|presunto|carne moída/.test(n)) return 'proteina';
   if (/\bovo\b|clara de ovo/.test(n)) return 'proteina';
   if (/iogurte natural|iogurte grego|cottage|queijo minas|leite desnatado|leite integral/.test(n)) return 'laticinios';
-  if (/arroz|macarrão|batata|mandioca|tapioca|aveia|pão|feijão|cuscuz|milho cozido/.test(n)) return 'carbo';
+  if (/feijão/.test(n)) return 'leguminosa';
+  if (/arroz|macarrão|batata|mandioca|tapioca|aveia|pão|cuscuz|milho cozido/.test(n)) return 'graos';
   if (/banana|maçã|laranja|mamão|morango|melancia|uva|manga|abacaxi/.test(n)) return 'fruta';
   if (/brócolis|alface|tomate|cenoura|chuchu|abobrinha|espinafre|repolho|pepino|vagem|beterraba|couve/.test(n)) return 'verdura';
   return null;
@@ -1200,51 +1221,63 @@ function catFood(f) {
 
 const PLANOS = {
   emagrecer: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','proteina','fruta'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos','proteina','fruta'] },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina','carbo','verdura'] },
+    { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina','graos','leguminosa','verdura'] },
     { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','verdura'] },
+    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','graos','leguminosa','verdura'] },
   ],
   manter: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','proteina','fruta'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos','proteina','fruta'] },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','carbo','verdura'] },
+    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','graos','leguminosa','verdura'] },
     { nome: '🥗 Lanche tarde',  pct: 0.10, slots: ['fruta','laticinios'] },
-    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','carbo','verdura'] },
+    { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina','graos','leguminosa','verdura'] },
     { nome: '🌛 Ceia',          pct: 0.05, slots: ['laticinios'] },
   ],
   massa: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['carbo','proteina','fruta'] },
-    { nome: '🏋️ Lanche manhã',  pct: 0.15, slots: ['carbo','proteina'] },
-    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','carbo','verdura'] },
-    { nome: '💪 Pré/pós treino',pct: 0.10, slots: ['carbo','fruta'] },
-    { nome: '🌙 Jantar',        pct: 0.20, slots: ['proteina','carbo','verdura'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos','proteina','fruta'] },
+    { nome: '🏋️ Lanche manhã',  pct: 0.15, slots: ['graos','proteina'] },
+    { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina','graos','leguminosa','verdura'] },
+    { nome: '💪 Pré/pós treino',pct: 0.10, slots: ['graos','fruta'] },
+    { nome: '🌙 Jantar',        pct: 0.20, slots: ['proteina','graos','leguminosa','verdura'] },
     { nome: '🌛 Ceia',          pct: 0.05, slots: ['proteina','laticinios'] },
   ],
 };
 
 const LIMITES = {
   proteina:   [80, 220],
-  carbo:      [50, 180],
+  graos:      [50, 180],
+  leguminosa: [60, 150],
   verdura:    [60, 280],
   fruta:      [80, 200],
   laticinios: [80, 200],
 };
 
-function pickFood(cat, used) {
-  const pool = PLAN_DB.filter(f => catFood(f) === cat && !used.has(f.name));
+function pickFood(cat, used, db) {
+  const pool = (db || PLAN_DB).filter(f => catFood(f) === cat && !used.has(f.name));
   if (!pool.length) return null;
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function generatePlan() {
-  const objetivo = document.getElementById('p-objetivo').value;
-  const calDia   = parseFloat(document.getElementById('p-cal').value);
+  const objetivo  = document.getElementById('p-objetivo').value;
+  const calDia    = parseFloat(document.getElementById('p-cal').value);
   if (!calDia || calDia < 800 || calDia > 6000) {
     alert('Informe um valor entre 800 e 6000 kcal.');
     return;
   }
+
+  const isVeg     = document.getElementById('r-veg').checked;
+  const semGluten = document.getElementById('r-gluten').checked;
+  const semLactose= document.getElementById('r-lactose').checked;
+
+  let db = PLAN_DB;
+  if (isVeg)      db = db.filter(f => !/frango|atum|sardinha|patinho|alcatra|carne moída|presunto|tilápia/.test(f.name.toLowerCase()));
+  if (semGluten)  db = db.filter(f => !/pão|macarrão/.test(f.name.toLowerCase()));
+  if (semLactose) db = db.filter(f => catFood(f) !== 'laticinios');
+
+  const restricoes = [isVeg && 'vegetariano', semGluten && 'sem glúten', semLactose && 'sem lactose'].filter(Boolean);
 
   const plano = PLANOS[objetivo];
   const used  = new Set();
@@ -1258,7 +1291,7 @@ function generatePlan() {
     let refCalReal = 0;
 
     for (const cat of ref.slots) {
-      const food = pickFood(cat, used);
+      const food = pickFood(cat, used, db);
       if (!food) continue;
       used.add(food.name);
 
@@ -1288,6 +1321,10 @@ function generatePlan() {
     </div>`;
   }
 
+  const notaRestricoes = restricoes.length
+    ? `<div style="font-size:.75rem;opacity:.8;margin-top:6px">Cardápio adaptado: ${restricoes.join(', ')}</div>`
+    : '';
+
   html += `<div class="plan-total">
     Total do dia: ${totalCal} kcal
     <div class="plan-macros">
@@ -1295,6 +1332,7 @@ function generatePlan() {
       <span>Carb ${totalCarb.toFixed(0)}g</span>
       <span>Gordura ${totalFat.toFixed(0)}g</span>
     </div>
+    ${notaRestricoes}
   </div>`;
 
   const box = document.getElementById('planResult');
@@ -1333,6 +1371,7 @@ function calcHB() {
   const idade  = parseFloat(document.getElementById('h-idade').value);
   const ativ   = parseFloat(document.getElementById('h-ativ').value);
 
+  if (!sexo) { alert('Selecione o sexo.'); return; }
   if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
     alert('Preencha todos os campos corretamente.');
     return;
