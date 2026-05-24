@@ -515,6 +515,69 @@
     .dropdown::-webkit-scrollbar { width: 6px; }
     .dropdown::-webkit-scrollbar-track { background: transparent; }
     .dropdown::-webkit-scrollbar-thumb { background: #d1fae5; border-radius: 99px; }
+
+    /* ── Mobile ─────────────────────────────────────────────── */
+    @media (max-width: 520px) {
+      /* Impede zoom automático do iOS em campos de texto */
+      input[type="text"], input[type="number"], select { font-size: 1rem !important; }
+
+      /* Header */
+      header { padding: 20px 16px 16px; }
+      .logo { font-size: 2rem; }
+      .tagline { font-size: 0.8rem; }
+
+      /* Container */
+      .container { padding: 20px 12px 48px; }
+
+      /* Cards da substituição */
+      .card { padding: 18px 16px; }
+      .res-card { padding: 20px; }
+      .res-big { font-size: 1.8rem; }
+      .macro-card { padding: 18px 16px; }
+
+      /* Botões */
+      .btn, .btn-water, .btn-imc, .btn-plan { font-size: 0.9rem; padding: 14px 12px; }
+
+      /* Modal — bottom sheet no celular */
+      .modal-bg {
+        padding: 0;
+        align-items: flex-end;
+      }
+      .modal {
+        padding: 24px 16px 28px;
+        border-radius: 22px 22px 0 0;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+
+      /* Grids 2-col dentro dos modais → 1 coluna */
+      .modal-2col { grid-template-columns: 1fr !important; }
+
+      /* Grids 3-col (peso/altura/idade) → 3-col mantido (inputs numéricos pequenos) */
+
+      /* Objetivos HB (3 cards) → empilhados */
+      .hb-goals { grid-template-columns: 1fr !important; }
+      .hb-goal { display: flex; align-items: center; justify-content: space-between; text-align: left; padding: 12px 14px; }
+      .hb-goal-label { margin-bottom: 0; margin-right: 8px; }
+      .hb-goal-val { font-size: 1.2rem; }
+      .hb-goal-hint { display: none; }
+      .hb-goal-use { margin-top: 0; margin-left: auto; white-space: nowrap; }
+
+      /* Stats HB — 1 coluna no mobile */
+      .hb-stats { grid-template-columns: 1fr !important; }
+      .hb-stat-main { grid-column: span 1 !important; }
+
+      /* Plano de refeições */
+      .plan-result { max-height: none; overflow-y: visible; padding-right: 0; }
+      .plan-total { font-size: 0.85rem; }
+      .plan-macros { gap: 12px; font-size: 0.73rem; }
+      .meal-item { flex-wrap: wrap; row-gap: 2px; }
+      .meal-item-qty { margin-left: 0; font-size: 0.8rem; }
+      .meal-item-name { flex: 1 1 100%; }
+
+      /* Legendas de macro */
+      .legend { flex-wrap: wrap; gap: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -583,7 +646,7 @@
       <div class="modal-title">🍽️ Sugestão de refeições</div>
       <div class="modal-sub">Cardápio diário baseado no seu objetivo</div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="modal-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <div>
           <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Objetivo</label>
           <select class="plan-select" id="p-objetivo">
@@ -625,7 +688,7 @@
       <div class="modal-title">🔥 Gasto calórico diário</div>
       <div class="modal-sub">Equação de Harris-Benedict (revisada)</div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="modal-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
         <div>
           <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Sexo</label>
           <select class="plan-select" id="h-sexo">
