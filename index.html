@@ -139,8 +139,8 @@
       display: block;
       width: 100%;
       padding: 16px;
-      background: var(--charcoal);
-      color: white;
+      background: var(--green);
+      color: var(--charcoal);
       border: none;
       border-radius: 12px;
       font-size: 1rem;
@@ -150,7 +150,7 @@
       text-transform: uppercase;
       transition: transform .2s, box-shadow .2s;
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(43,43,43,.35); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(98,200,35,.45); }
     .btn:active { transform: none; }
 
     /* ── Results ── */
@@ -541,7 +541,13 @@
     [data-theme="dark"] .dd-item.hi { background: #1e3a1e; }
     [data-theme="dark"] .dd-cal,
     [data-theme="dark"] .dd-empty { color: #94a3b8; }
-    [data-theme="dark"] .btn { background: #e2e8f0; color: #1e293b; }
+    [data-theme="dark"] .btn:hover { box-shadow: 0 8px 28px rgba(98,200,35,.35); }
+    [data-theme="dark"] .btn-water { background: #2563eb; }
+    [data-theme="dark"] .btn-water:hover { box-shadow: 0 8px 24px rgba(37,99,235,.5); }
+    [data-theme="dark"] .btn-imc { background: #7c3aed; }
+    [data-theme="dark"] .btn-imc:hover { box-shadow: 0 8px 24px rgba(124,58,237,.5); }
+    [data-theme="dark"] .btn-plan { background: #0d9488; }
+    [data-theme="dark"] .btn-plan:hover { box-shadow: 0 8px 24px rgba(13,148,136,.5); }
     [data-theme="dark"] .modal { background: #1e293b; }
     [data-theme="dark"] .modal-title { color: #f1f5f9; }
     [data-theme="dark"] .modal-close { color: #94a3b8; }
