@@ -15,7 +15,7 @@ Everything lives in `index.html`:
 - **Autocomplete** (`setupAC(inputId, dropdownId)`): Returns a `{ getFood() }` handle. Two instances — `acA` (current food) and `acB` (substitute).
 - **Food substitution** (`calculate()`): Core formula — `qB = (qA / 100 * fA.cal) / fB.cal * 100`. Macros are scaled linearly from per-100g values. Results and macro comparison bars are rendered into `#results`.
 - **Water calculator** (`calcWater()`): Modal opened by `openWater()`. Uses WHO age-bracket factors (ml/kg): 18–30 → 40, 31–55 → 35, 56–65 → 30, 65+ → 25. Shows daily liters and glass count only — no BMI. Modal closes on `Esc`, outside click, or `×` button.
-- **IMC calculator** (`calcIMC()`): Modal opened by `openIMC()`. Requires peso (kg), altura (cm), and idade (years). `openIMC()` pre-fills `i-peso`, `i-altura`, `i-idade` from the water modal fields (`w-peso`, `w-altura`, `w-idade`) if already filled. `imcClass(imc)` maps the result to `{ cor, badge, grade, tip }` per WHO brackets. `imcHTML(imc, alturaM)` renders the full result with ideal weight range. CSS classes `.imc-verde` (healthy), `.imc-amarelo` (attention), `.imc-vermelho` (outside range) provide color-coded gradients.
+- **Harris-Benedict calculator** (`calcHB()`): Modal opened by `openHB()`. Inputs: sexo (m/f), nível de atividade (select, 1.2–1.9), peso, altura, idade — last three pre-filled from water modal (`w-peso`, `w-altura`, `w-idade`). Computes TMB (basal metabolic rate) and GET (total energy expenditure = TMB × activity factor). Displays three clickable goal cards (emagrecer GET−500, manter GET, ganhar massa GET+400). Each card calls `usarNoPlano(kcal, objetivo)` which closes the HB modal, pre-fills `p-cal` and `p-objetivo` in the meal planner, and opens it directly. Button is purple `#5b21b6`.
 
 ## Meal planner (`generatePlan()`)
 
@@ -26,7 +26,7 @@ Modal opened by `openPlan()`. Inputs: `p-objetivo` (emagrecer / manter / massa) 
 Four action buttons below the substitution form:
 - **Calcular substituição** — charcoal `#2B2B2B`
 - **Calcular ingestão de água** — navy `#1a3a5c`
-- **Calcular IMC** — purple `#5b21b6`
+- **Calcular gasto calórico** (Harris-Benedict) — purple `#5b21b6`
 - **Sugerir refeições do dia** — teal `#0f766e`
 
 ## Key conventions
@@ -35,4 +35,4 @@ Four action buttons below the substitution form:
 - The calorie-equivalence formula must stay symmetrical: changing `qA` or swapping foods should always satisfy `qA * cal_A = qB * cal_B`.
 - The `--green` variable is used for interactive elements, header background, and result highlights — changing it affects the entire visual identity.
 - The app has no persistence, no backend, and no external requests.
-- New features that require user input should follow the modal pattern established for all calculators (`modal-bg` → `modal` → result area toggled with `.hidden`). Field IDs use a prefix: `w-` for water, `i-` for IMC, `p-` for the meal planner.
+- New features that require user input should follow the modal pattern established for all calculators (`modal-bg` → `modal` → result area toggled with `.hidden`). Field IDs use a prefix: `w-` for water, `h-` for Harris-Benedict, `p-` for the meal planner.

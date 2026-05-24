@@ -363,43 +363,42 @@
       font-weight: 600;
     }
 
-    /* ── Resultado IMC ── */
-    .imc-result {
-      margin-top: 20px;
-      border-radius: 14px;
-      padding: 20px;
-      color: white;
+    /* ── Resultado Harris-Benedict ── */
+    .hb-result { margin-top: 18px; animation: up .3s ease; }
+    .hb-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .hb-stat {
+      background: #f5f3ff;
+      border: 1.5px solid #ddd6fe;
+      border-radius: 12px;
+      padding: 12px;
       text-align: center;
-      animation: up .3s ease;
     }
-    .imc-value { font-size: 3rem; font-weight: 900; line-height: 1; }
-    .imc-unit  { font-size: 0.85rem; opacity: .75; margin-bottom: 12px; }
-    .imc-badge {
-      display: inline-block;
-      padding: 5px 16px;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      background: rgba(255,255,255,.2);
-      margin-bottom: 10px;
+    .hb-stat-label { font-size: 0.68rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+    .hb-stat-val   { font-size: 1.45rem; font-weight: 900; color: #4c1d95; line-height: 1.1; }
+    .hb-stat-unit  { font-size: 0.7rem; color: #7c3aed; opacity: .7; }
+    .hb-stat-main  { background: #5b21b6; border-color: #5b21b6; grid-column: span 2; }
+    .hb-stat-main .hb-stat-label { color: rgba(255,255,255,.75); }
+    .hb-stat-main .hb-stat-val   { color: white; font-size: 1.9rem; }
+    .hb-stat-main .hb-stat-unit  { color: rgba(255,255,255,.65); }
+    .hb-goals { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+    .hb-goal {
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 11px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
     }
-    .imc-grade { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
-    .imc-tip   { font-size: 0.82rem; opacity: .85; line-height: 1.5; }
-    .imc-range {
-      margin-top: 12px;
-      background: rgba(255,255,255,.12);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 0.78rem;
-      opacity: .9;
-    }
-
-    /* Cores IMC */
-    .imc-verde   { background: linear-gradient(135deg, #166534, #16a34a); }
-    .imc-amarelo { background: linear-gradient(135deg, #92400e, #d97706); }
-    .imc-vermelho{ background: linear-gradient(135deg, #7f1d1d, #dc2626); }
+    .hb-goal:hover { border-color: #5b21b6; background: #f5f3ff; }
+    .hb-goal-label { font-size: 0.68rem; font-weight: 700; color: #6b7280; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+    .hb-goal-val   { font-size: 1rem; font-weight: 900; color: #1e293b; display: block; }
+    .hb-goal-hint  { font-size: 0.62rem; color: #9ca3af; display: block; margin-top: 2px; }
+    .hb-goal-use   { font-size: 0.68rem; color: #5b21b6; font-weight: 800; display: block; margin-top: 5px; }
 
     /* ── Modal ── */
     .modal-bg {
@@ -570,8 +569,8 @@
   <button class="btn-water" onclick="openWater()">
     <span class="drop">💧</span> Calcular ingestão diária de água
   </button>
-  <button class="btn-imc" onclick="openIMC()">
-    ⚖️ Calcular IMC
+  <button class="btn-imc" onclick="openHB()">
+    🔥 Calcular gasto calórico
   </button>
   <button class="btn-plan" onclick="openPlan()">
     🍽️ Sugerir refeições do dia
@@ -604,30 +603,50 @@
     </div>
   </div>
 
-  <!-- Modal IMC -->
-  <div class="modal-bg hidden" id="imcModal" onclick="closeIMCOnBg(event)">
-    <div class="modal">
-      <button class="modal-close" onclick="closeIMC()">×</button>
-      <div class="modal-title">⚖️ Índice de Massa Corporal</div>
-      <div class="modal-sub">Classificação da OMS — peso e altura</div>
+  <!-- Modal Harris-Benedict -->
+  <div class="modal-bg hidden" id="hbModal" onclick="closeHBOnBg(event)">
+    <div class="modal modal-wide">
+      <button class="modal-close" onclick="closeHB()">×</button>
+      <div class="modal-title">🔥 Gasto calórico diário</div>
+      <div class="modal-sub">Equação de Harris-Benedict (revisada)</div>
 
-      <div class="modal-grid">
-        <div class="modal-field">
-          <label for="i-peso">Peso (kg)</label>
-          <input type="number" id="i-peso" placeholder="70" min="1" max="300">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Sexo</label>
+          <select class="plan-select" id="h-sexo">
+            <option value="m">Masculino</option>
+            <option value="f">Feminino</option>
+          </select>
         </div>
-        <div class="modal-field">
-          <label for="i-altura">Altura (cm)</label>
-          <input type="number" id="i-altura" placeholder="170" min="50" max="250">
-        </div>
-        <div class="modal-field">
-          <label for="i-idade">Idade</label>
-          <input type="number" id="i-idade" placeholder="30" min="1" max="120">
+        <div>
+          <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Nível de atividade</label>
+          <select class="plan-select" id="h-ativ">
+            <option value="1.2">Sedentário</option>
+            <option value="1.375">Levemente ativo (1–3×/sem)</option>
+            <option value="1.55" selected>Moderado (3–5×/sem)</option>
+            <option value="1.725">Muito ativo (6–7×/sem)</option>
+            <option value="1.9">Atleta / trabalho físico</option>
+          </select>
         </div>
       </div>
 
-      <button class="btn-calcwater" style="background:#5b21b6" onclick="calcIMC()">Calcular</button>
-      <div id="imcResult" class="hidden"></div>
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label for="h-peso">Peso (kg)</label>
+          <input type="number" id="h-peso" placeholder="70" min="1" max="300">
+        </div>
+        <div class="modal-field">
+          <label for="h-altura">Altura (cm)</label>
+          <input type="number" id="h-altura" placeholder="170" min="50" max="250">
+        </div>
+        <div class="modal-field">
+          <label for="h-idade">Idade</label>
+          <input type="number" id="h-idade" placeholder="30" min="1" max="120">
+        </div>
+      </div>
+
+      <button class="btn-calcwater" style="background:#5b21b6;color:white" onclick="calcHB()">Calcular</button>
+      <div id="hbResult" class="hidden hb-result"></div>
     </div>
   </div>
 
@@ -1137,7 +1156,7 @@ function closeWaterOnBg(e) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeWater(); closeIMC(); closePlan(); }
+  if (e.key === 'Escape') { closeWater(); closeHB(); closePlan(); }
 });
 
 // ── Sugestão de Refeições ────────────────────────────────────────
@@ -1290,31 +1309,87 @@ function openPlan() {
 function closePlan() { document.getElementById('planModal').classList.add('hidden'); }
 function closePlanOnBg(e) { if (e.target.id === 'planModal') closePlan(); }
 
-// ── Classificação IMC (OMS) ──────────────────────────────────────
-function imcClass(imc) {
-  if (imc < 17.0) return { cor:'imc-vermelho', badge:'Magreza grau III',  grade:'Muito abaixo do peso', tip:'Seu IMC indica magreza severa. Procure acompanhamento médico com urgência.' };
-  if (imc < 18.5) return { cor:'imc-amarelo',  badge:'Abaixo do peso',    grade:'Levemente abaixo do peso ideal', tip:'Você está abaixo do peso ideal. Atenção à alimentação e consulte um nutricionista.' };
-  if (imc < 25.0) return { cor:'imc-verde',    badge:'Peso saudável ✓',   grade:'Faixa saudável pela OMS', tip:'Parabéns! Seu peso está dentro da faixa saudável recomendada pela OMS.' };
-  if (imc < 30.0) return { cor:'imc-amarelo',  badge:'Sobrepeso',         grade:'Acima do peso ideal', tip:'Você está na faixa de sobrepeso. Atenção à dieta e pratique exercícios regularmente.' };
-  if (imc < 35.0) return { cor:'imc-vermelho', badge:'Obesidade grau I',  grade:'Obesidade moderada', tip:'Obesidade grau I. Recomenda-se acompanhamento médico e mudanças no estilo de vida.' };
-  if (imc < 40.0) return { cor:'imc-vermelho', badge:'Obesidade grau II', grade:'Obesidade severa', tip:'Obesidade grau II. É importante buscar acompanhamento médico especializado.' };
-  return           { cor:'imc-vermelho', badge:'Obesidade grau III', grade:'Obesidade mórbida', tip:'Obesidade grau III. Busque acompanhamento médico com urgência.' };
+// ── Calculadora de Harris-Benedict ──────────────────────────────
+function openHB() {
+  const wPeso   = document.getElementById('w-peso').value;
+  const wAltura = document.getElementById('w-altura').value;
+  const wIdade  = document.getElementById('w-idade').value;
+  if (wPeso)   document.getElementById('h-peso').value   = wPeso;
+  if (wAltura) document.getElementById('h-altura').value = wAltura;
+  if (wIdade)  document.getElementById('h-idade').value  = wIdade;
+
+  document.getElementById('hbModal').classList.remove('hidden');
+  document.getElementById('hbResult').classList.add('hidden');
+  document.getElementById('h-peso').focus();
 }
 
-function imcHTML(imc, alturaM) {
-  const cls  = imcClass(imc);
-  const pMin = (18.5 * alturaM * alturaM).toFixed(1);
-  const pMax = (24.9 * alturaM * alturaM).toFixed(1);
-  return `
-    <div class="imc-result ${cls.cor}">
-      <div class="imc-unit">Índice de Massa Corporal</div>
-      <div class="imc-value">${imc}</div>
-      <div class="imc-unit">kg/m²</div>
-      <div class="imc-badge">${cls.badge}</div>
-      <div class="imc-grade">${cls.grade}</div>
-      <div class="imc-tip">${cls.tip}</div>
-      <div class="imc-range">🎯 Peso ideal para sua altura: <strong>${pMin} – ${pMax} kg</strong></div>
+function closeHB() { document.getElementById('hbModal').classList.add('hidden'); }
+function closeHBOnBg(e) { if (e.target.id === 'hbModal') closeHB(); }
+
+function calcHB() {
+  const sexo   = document.getElementById('h-sexo').value;
+  const peso   = parseFloat(document.getElementById('h-peso').value);
+  const altura = parseFloat(document.getElementById('h-altura').value);
+  const idade  = parseFloat(document.getElementById('h-idade').value);
+  const ativ   = parseFloat(document.getElementById('h-ativ').value);
+
+  if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
+    alert('Preencha todos os campos corretamente.');
+    return;
+  }
+
+  // Harris-Benedict revisada (Mifflin-St Jeor é mais precisa, mas HB é a pedida)
+  const tmb = sexo === 'm'
+    ? Math.round(88.362 + 13.397 * peso + 4.799 * altura - 5.677 * idade)
+    : Math.round(447.593 + 9.247 * peso + 3.098 * altura - 4.330 * idade);
+
+  const get        = Math.round(tmb * ativ);
+  const emagrecer  = get - 500;
+  const ganharMassa = get + 400;
+
+  const box = document.getElementById('hbResult');
+  box.innerHTML = `
+    <div class="hb-stats">
+      <div class="hb-stat">
+        <div class="hb-stat-label">TMB (repouso)</div>
+        <div class="hb-stat-val">${tmb.toLocaleString('pt-BR')}</div>
+        <div class="hb-stat-unit">kcal/dia</div>
+      </div>
+      <div class="hb-stat hb-stat-main">
+        <div class="hb-stat-label">Gasto energético total (GET)</div>
+        <div class="hb-stat-val">${get.toLocaleString('pt-BR')}</div>
+        <div class="hb-stat-unit">kcal/dia com sua atividade</div>
+      </div>
+    </div>
+    <div class="hb-goals">
+      <div class="hb-goal" onclick="usarNoPlano(${emagrecer},'emagrecer')">
+        <span class="hb-goal-label">Emagrecer</span>
+        <span class="hb-goal-val">${emagrecer.toLocaleString('pt-BR')}</span>
+        <span class="hb-goal-hint">déficit de 500 kcal</span>
+        <span class="hb-goal-use">Usar no planejador →</span>
+      </div>
+      <div class="hb-goal" onclick="usarNoPlano(${get},'manter')">
+        <span class="hb-goal-label">Manter peso</span>
+        <span class="hb-goal-val">${get.toLocaleString('pt-BR')}</span>
+        <span class="hb-goal-hint">igual ao GET</span>
+        <span class="hb-goal-use">Usar no planejador →</span>
+      </div>
+      <div class="hb-goal" onclick="usarNoPlano(${ganharMassa},'massa')">
+        <span class="hb-goal-label">Ganhar massa</span>
+        <span class="hb-goal-val">${ganharMassa.toLocaleString('pt-BR')}</span>
+        <span class="hb-goal-hint">superávit de 400 kcal</span>
+        <span class="hb-goal-use">Usar no planejador →</span>
+      </div>
     </div>`;
+  box.classList.remove('hidden');
+}
+
+function usarNoPlano(kcal, objetivo) {
+  closeHB();
+  document.getElementById('p-cal').value     = kcal;
+  document.getElementById('p-objetivo').value = objetivo;
+  document.getElementById('planResult').classList.add('hidden');
+  document.getElementById('planModal').classList.remove('hidden');
 }
 
 // ── Calculadora de Água ──────────────────────────────────────────
