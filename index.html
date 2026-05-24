@@ -1333,25 +1333,50 @@ function catFood(f) {
   return null;
 }
 
+// Templates de combinações coerentes para café e lanches
+const T_CAFE = [
+  [['Aveia em flocos'], ['Whey protein'], 'fruta'],
+  [['Aveia em flocos'], ['Iogurte natural desnatado','Iogurte grego natural'], 'fruta'],
+  [['Pão integral','Pão francês'], ['Ovo inteiro cozido','Clara de ovo cozida'], 'fruta'],
+  [['Pão integral','Pão francês'], ['Queijo minas frescal','Queijo cottage','Iogurte grego natural'], 'fruta'],
+  [['Tapioca (goma)'], ['Ovo inteiro cozido','Clara de ovo cozida','Atum em água (lata)'], 'fruta'],
+  [['Tapioca (goma)'], ['Queijo minas frescal','Queijo cottage','Iogurte grego natural'], 'fruta'],
+  [['Cuscuz cozido'], ['Ovo inteiro cozido','Clara de ovo cozida'], 'fruta'],
+];
+
+const T_LANCHE = [
+  ['fruta', ['Iogurte natural desnatado','Iogurte grego natural','Queijo cottage']],
+  ['fruta', ['Whey protein']],
+  [['Pão integral','Pão francês'], ['Queijo minas frescal','Queijo cottage','Atum em água (lata)']],
+  [['Tapioca (goma)'], ['Whey protein','Iogurte natural desnatado','Iogurte grego natural']],
+  [['Aveia em flocos'], ['Whey protein','Iogurte natural desnatado','Iogurte grego natural']],
+];
+
+const T_LANCHE_MASSA = [
+  [['Aveia em flocos'], ['Whey protein']],
+  [['Tapioca (goma)'], ['Whey protein','Iogurte grego natural']],
+  [['Pão integral','Pão francês','Tapioca (goma)'], ['Ovo inteiro cozido','Clara de ovo cozida','Atum em água (lata)']],
+];
+
 const PLANOS = {
   emagrecer: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, templates: T_CAFE },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
     { nome: '🍽️ Almoço',        pct: 0.35, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
-    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: [['fruta','graos_cafe','laticinios','proteina_cafe'],['fruta','graos_cafe','laticinios','proteina_cafe']] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, templates: T_LANCHE },
     { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
   ],
   manter: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, templates: T_CAFE },
     { nome: '🍎 Lanche manhã',  pct: 0.10, slots: ['fruta','laticinios'] },
     { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
-    { nome: '🥗 Lanche tarde',  pct: 0.10, slots: [['fruta','graos_cafe','laticinios','proteina_cafe'],['fruta','graos_cafe','laticinios','proteina_cafe']] },
+    { nome: '🥗 Lanche tarde',  pct: 0.10, templates: T_LANCHE },
     { nome: '🌙 Jantar',        pct: 0.25, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
     { nome: '🌛 Ceia',          pct: 0.05, slots: ['laticinios'] },
   ],
   massa: [
-    { nome: '☀️ Café da manhã', pct: 0.20, slots: ['graos_cafe','proteina_cafe','fruta'] },
-    { nome: '🏋️ Lanche manhã',  pct: 0.15, slots: ['graos_cafe','proteina_cafe'] },
+    { nome: '☀️ Café da manhã', pct: 0.20, templates: T_CAFE },
+    { nome: '🏋️ Lanche manhã',  pct: 0.15, templates: T_LANCHE_MASSA },
     { nome: '🍽️ Almoço',        pct: 0.30, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
     { nome: '💪 Pré/pós treino',pct: 0.10, slots: ['graos_cafe','fruta'] },
     { nome: '🌙 Jantar',        pct: 0.20, slots: ['proteina_refeicao','graos_refeicao','leguminosa','verdura','gordura'] },
@@ -1371,11 +1396,25 @@ const LIMITES = {
   gordura:          [10, 20],
 };
 
-function pickFood(cat, used, db) {
-  const cats = Array.isArray(cat) ? cat : [cat];
-  const pool = (db || PLAN_DB).filter(f => cats.includes(catFood(f)) && !used.has(f.name));
-  if (!pool.length) return null;
-  return pool[Math.floor(Math.random() * pool.length)];
+const CAT_NAMES = new Set(['proteina_cafe','proteina_refeicao','graos_cafe','graos_refeicao','leguminosa','verdura','fruta','laticinios','gordura']);
+
+function pickFood(pool, used, db) {
+  const base = db || PLAN_DB;
+  let candidates;
+  if (Array.isArray(pool)) {
+    if (pool.every(p => CAT_NAMES.has(p))) {
+      // Array de categorias
+      candidates = base.filter(f => pool.includes(catFood(f)) && !used.has(f.name));
+    } else {
+      // Array de nomes explícitos de alimentos
+      candidates = pool.map(name => base.find(f => f.name === name)).filter(f => f && !used.has(f.name));
+    }
+  } else {
+    // Categoria única
+    candidates = base.filter(f => catFood(f) === pool && !used.has(f.name));
+  }
+  if (!candidates.length) return null;
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
 function fmtQty(name, g, cal) {
@@ -1420,17 +1459,21 @@ function generatePlan() {
   let html = '';
 
   for (const ref of plano) {
-    const refTarget  = calDia * ref.pct;
-    const calPerSlot = refTarget / ref.slots.length;
+    const refTarget = calDia * ref.pct;
+    const pools = ref.templates
+      ? ref.templates[Math.floor(Math.random() * ref.templates.length)]
+      : ref.slots;
+    const calPerSlot = refTarget / pools.length;
     const items = [];
     let refCalReal = 0;
 
-    for (const cat of ref.slots) {
-      const food = pickFood(cat, used, db);
+    for (const pool of pools) {
+      const food = pickFood(pool, used, db);
       if (!food) continue;
-      if (cat !== 'gordura') used.add(food.name);
+      const foodCat = catFood(food);
+      if (foodCat !== 'gordura') used.add(food.name);
 
-      const [mn, mx] = LIMITES[cat] || [30, 200];
+      const [mn, mx] = LIMITES[foodCat] || [30, 200];
       let g = Math.round((calPerSlot / food.cal) * 100);
       g = Math.min(Math.max(g, mn), mx);
 
