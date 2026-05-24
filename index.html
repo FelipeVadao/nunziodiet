@@ -1272,6 +1272,19 @@ function pickFood(cat, used, db) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+function fmtQty(name, g, cal) {
+  const n = name.toLowerCase();
+  let unidade = '';
+  if (/clara de ovo/.test(n)) {
+    const qty = Math.max(1, Math.round(g / 33));
+    unidade = ` (${qty} clara${qty > 1 ? 's' : ''})`;
+  } else if (/\bovo\b/.test(n)) {
+    const qty = Math.max(1, Math.round(g / 50));
+    unidade = ` (${qty} ovo${qty > 1 ? 's' : ''})`;
+  }
+  return `${g}g${unidade} · ${cal} kcal`;
+}
+
 function generatePlan() {
   const objetivo  = document.getElementById('p-objetivo').value;
   const calDia    = parseFloat(document.getElementById('p-cal').value);
@@ -1328,7 +1341,7 @@ function generatePlan() {
       <div class="meal-title">${ref.nome}<span class="meal-kcal">${refCalReal} kcal</span></div>
       ${items.map(it => `<div class="meal-item">
         <span class="meal-item-name">${it.name}</span>
-        <span class="meal-item-qty">${it.g}g · ${it.cal} kcal</span>
+        <span class="meal-item-qty">${fmtQty(it.name, it.g, it.cal)}</span>
       </div>`).join('')}
     </div>`;
   }
