@@ -96,4 +96,4 @@ Each `PLANOS` entry has `templates: T_*` — an array of meal templates. `genera
 - `--green` affects header, main button, focus rings, and result highlights — changes ripple everywhere.
 - New modals follow the pattern: `modal-bg.hidden` → `modal` → result div toggled with `.hidden`. Field ID prefixes: `w-` water, `h-` Harris-Benedict, `p-` meal planner.
 - Presunto, sardinha, atum are **breakfast/snack proteins** — never include them in `T_ALMOCO` or `T_JANTAR` templates.
-- After every `git push`, reset the remote URL to remove the token: `git remote set-url origin https://github.com/FelipeVadao/nunziodiet.git`.
+- GitHub credentials are stored in the Windows Credential Manager — `git push` works without any token in the URL.
