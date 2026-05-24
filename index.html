@@ -516,6 +516,67 @@
     .dropdown::-webkit-scrollbar-track { background: transparent; }
     .dropdown::-webkit-scrollbar-thumb { background: #d1fae5; border-radius: 99px; }
 
+    /* ── Dark mode ──────────────────────────────────────────── */
+    [data-theme="dark"] {
+      --green-bg: #111827;
+      --charcoal: #f1f5f9;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #1e3018;
+      --purple-light: #3b0764;
+      --card-shadow: 0 4px 24px rgba(0,0,0,.5);
+    }
+    [data-theme="dark"] body { background: #111827; color: #f1f5f9; }
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .macro-card { background: #1e293b; border-color: #334155; }
+    [data-theme="dark"] .note { background: #1c1300; border-color: #854d0e; color: #fcd34d; }
+    [data-theme="dark"] .note strong { color: #fde68a; }
+    [data-theme="dark"] input[type="text"],
+    [data-theme="dark"] input[type="number"] { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+    [data-theme="dark"] input:focus { background: #1e293b; }
+    [data-theme="dark"] select.plan-select { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+    [data-theme="dark"] .dropdown { background: #1e293b; border-color: #334155; }
+    [data-theme="dark"] .dd-item { border-color: #1e293b; color: #f1f5f9; }
+    [data-theme="dark"] .dd-item:hover,
+    [data-theme="dark"] .dd-item.hi { background: #1e3a1e; }
+    [data-theme="dark"] .dd-cal,
+    [data-theme="dark"] .dd-empty { color: #94a3b8; }
+    [data-theme="dark"] .btn { background: #e2e8f0; color: #1e293b; }
+    [data-theme="dark"] .modal { background: #1e293b; }
+    [data-theme="dark"] .modal-title { color: #f1f5f9; }
+    [data-theme="dark"] .modal-close { color: #94a3b8; }
+    [data-theme="dark"] .modal-close:hover { color: #f1f5f9; }
+    [data-theme="dark"] .meal-card { background: #0f172a; border-color: #334155; }
+    [data-theme="dark"] .meal-item { border-color: #1e293b; }
+    [data-theme="dark"] .meal-item-name { color: #e2e8f0; }
+    [data-theme="dark"] .bar-bg { background: #334155; }
+    [data-theme="dark"] .m-name { color: #f1f5f9; }
+    [data-theme="dark"] .hb-stat { background: #2e1a4e; border-color: #4c1d95; }
+    [data-theme="dark"] .hb-goal { border-color: #334155; }
+    [data-theme="dark"] .hb-goal:hover { background: #2e1a4e; border-color: #5b21b6; }
+    [data-theme="dark"] .hb-goal-val { color: #f1f5f9; }
+    [data-theme="dark"] .hb-goal-use { color: #a78bfa; }
+    [data-theme="dark"] .chip-a { background: #1a3a0a; color: #86efac; }
+    [data-theme="dark"] .chip-b { background: #2e1065; color: #c4b5fd; }
+    [data-theme="dark"] .water-tip { background: rgba(98,200,35,.1); color: #86efac; }
+    [data-theme="dark"] .tagline { opacity: 1; color: rgba(255,255,255,.8); }
+
+    /* Botão de tema */
+    .theme-toggle {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: rgba(0,0,0,.18);
+      border: none;
+      border-radius: 50%;
+      width: 38px; height: 38px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .theme-toggle:hover { background: rgba(0,0,0,.32); }
+
     /* ── Mobile ─────────────────────────────────────────────── */
     @media (max-width: 520px) {
       /* Impede zoom automático do iOS em campos de texto */
@@ -582,7 +643,8 @@
 </head>
 <body>
 
-<header>
+<header style="position:relative">
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
   <div class="header-inner">
     <div class="logo"><em>NUNZIO</em><span>DIET</span></div>
   </div>
@@ -1278,6 +1340,24 @@ function closeWaterOnBg(e) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeWater(); closeHB(); closePlan(); }
 });
+
+// ── Tema claro / escuro ──────────────────────────────────────
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('nd-theme', next);
+}
+
+(function () {
+  const saved = localStorage.getItem('nd-theme')
+    || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', saved);
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('themeToggle').textContent = saved === 'dark' ? '☀️' : '🌙';
+  });
+})();
 
 // ── Sugestão de Refeições ────────────────────────────────────────
 
