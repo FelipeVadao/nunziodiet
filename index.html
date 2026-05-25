@@ -456,8 +456,21 @@
     .modal-sub {
       font-size: 0.78rem;
       color: var(--text-muted);
-      margin-bottom: 22px;
+      margin-bottom: 14px;
     }
+    .plan-edit-notice {
+      background: #fef9c3;
+      border-left: 4px solid #eab308;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #713f12;
+      margin-bottom: 18px;
+      line-height: 1.45;
+    }
+    .plan-edit-notice strong { color: #92400e; }
+    [data-theme="dark"] .plan-edit-notice { background: #422006; border-left-color: #d97706; color: #fcd34d; }
+    [data-theme="dark"] .plan-edit-notice strong { color: #fbbf24; }
     .modal-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -779,6 +792,7 @@
       <button class="modal-close" onclick="closePlan()">×</button>
       <div class="modal-title">🍽️ Sugestão de refeições</div>
       <div class="modal-sub">Cardápio diário baseado no seu objetivo</div>
+      <div class="plan-edit-notice">✏️ <strong>Os campos dos alimentos são editáveis</strong> — clique em qualquer alimento para substituí-lo pela sua preferência.</div>
 
       <div class="modal-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <div>
