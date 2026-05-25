@@ -1288,7 +1288,10 @@ function levenshtein(a, b) {
 function fuzzyScore(foodName, query) {
   const fn = norm(foodName);
   const q  = norm(query);
-  if (!q || q.length < 2) return Infinity;
+  if (!q) return Infinity;
+  if (q.length === 1) {
+    return fn.split(/\s+/).some(w => w.startsWith(q)) ? 0 : Infinity;
+  }
   if (fn.includes(q)) return 0;
   const words = fn.split(/\s+/);
   let min = Infinity;
@@ -1761,8 +1764,9 @@ function fmtQty(name, g, cal) {
   if      (/clara de ovo/.test(n))  { const q = Math.max(1,Math.round(g/33));  u = ` (${q} clara${q>1?'s':''})`; }
   else if (/\bovo\b/.test(n))       { const q = Math.max(1,Math.round(g/50));  u = ` (${q} ovo${q>1?'s':''})`; }
   else if (/whey/.test(n))          { const q = Math.max(1,Math.round(g/30));  u = ` (${q} dose${q>1?'s':''})`; }
-  else if (/pão francês/.test(n))   { const q = Math.max(1,Math.round(g/50));  u = ` (${q} unidade${q>1?'s':''})`; }
-  else if (/pão integral/.test(n))  { const q = Math.max(1,Math.round(g/25));  u = ` (${q} fatia${q>1?'s':''})`; }
+  else if (/pão francês/.test(n))        { const q = Math.max(1,Math.round(g/50));  u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/pão de hambúrguer/.test(n))  { const q = Math.max(1,Math.round(g/50));  u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/pão (integral|branco)/.test(n)) { const q = Math.max(1,Math.round(g/25));  u = ` (${q} fatia${q>1?'s':''})`; }
   else if (/banana/.test(n))        { const q = Math.max(1,Math.round(g/80));  u = ` (${q} banana${q>1?'s':''})`; }
   else if (/maçã/.test(n))          { const q = Math.max(1,Math.round(g/130)); u = ` (${q} unidade${q>1?'s':''})`; }
   else if (/laranja/.test(n))       { const q = Math.max(1,Math.round(g/130)); u = ` (${q} unidade${q>1?'s':''})`; }
