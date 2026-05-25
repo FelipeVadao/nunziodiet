@@ -385,13 +385,16 @@
     }
     .btn-add-food:hover { background: var(--green); color: #fff; border-style: solid; }
     .btn-add-meal {
-      display: block; width: 100%; margin: 8px 0; padding: 10px;
-      background: transparent; border: 1.5px dashed rgba(15,118,110,0.5);
-      border-radius: 10px; color: #0f766e;
-      font-size: 0.8rem; font-weight: 700; cursor: pointer;
-      transition: background .2s, color .2s;
+      display: block; width: 100%; margin: 12px 0; padding: 13px;
+      background: #0f766e; border: none;
+      border-radius: 12px; color: #fff;
+      font-size: 0.88rem; font-weight: 800; cursor: pointer;
+      letter-spacing: .4px;
+      box-shadow: 0 4px 16px rgba(15,118,110,0.35);
+      transition: background .2s, box-shadow .2s, transform .1s;
     }
-    .btn-add-meal:hover { background: #0f766e; color: #fff; border-style: solid; }
+    .btn-add-meal:hover { background: #0d9488; box-shadow: 0 6px 22px rgba(15,118,110,0.5); transform: translateY(-1px); }
+    .btn-add-meal:active { transform: translateY(0); }
     .meal-name-input {
       border: none; border-bottom: 1px dashed #4b5563;
       background: transparent; font-size: 0.78rem; font-weight: 800;
@@ -404,8 +407,8 @@
     [data-theme="dark"] .btn-rm-meal:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
     [data-theme="dark"] .btn-add-food { color: var(--green); border-color: rgba(98,200,35,0.3); }
     [data-theme="dark"] .btn-add-food:hover { color: #000; }
-    [data-theme="dark"] .btn-add-meal { color: #0d9488; border-color: rgba(13,148,136,0.3); }
-    [data-theme="dark"] .btn-add-meal:hover { background: #0d9488; color: #000; }
+    [data-theme="dark"] .btn-add-meal { background: #0d5c56; box-shadow: 0 4px 16px rgba(13,148,136,0.25); }
+    [data-theme="dark"] .btn-add-meal:hover { background: #0d9488; box-shadow: 0 6px 22px rgba(13,148,136,0.45); }
     [data-theme="dark"] .meal-name-input { color: #0d9488; border-bottom-color: #333; }
     .plan-total {
       background: #0f766e;
