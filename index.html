@@ -343,6 +343,20 @@
     .meal-item:last-child { border-bottom: none; }
     .meal-item-name { color: #1e293b; }
     .meal-item-qty { font-weight: 700; color: #0f766e; white-space: nowrap; margin-left: 8px; }
+    .meal-item-select {
+      border: none;
+      border-bottom: 1.5px dashed var(--green);
+      background: transparent;
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 2px 2px 0;
+      flex: 1;
+      min-width: 0;
+    }
+    .meal-item-select:focus { border-bottom-style: solid; }
     .plan-total {
       background: #0f766e;
       color: white;
@@ -555,6 +569,7 @@
     [data-theme="dark"] .meal-card { background: #0f172a; border-color: #334155; }
     [data-theme="dark"] .meal-item { border-color: #1e293b; }
     [data-theme="dark"] .meal-item-name { color: #e2e8f0; }
+    [data-theme="dark"] .meal-item-select { color: #e2e8f0; background: transparent; }
     [data-theme="dark"] .bar-bg { background: #334155; }
     [data-theme="dark"] .m-name { color: #f1f5f9; }
     [data-theme="dark"] .hb-stat { background: #2e1a4e; border-color: #4c1d95; }
@@ -624,6 +639,7 @@
       .meal-item:last-child { border-bottom: none; }
       .meal-item-name { color: #1e293b; }
       .meal-item-qty { font-weight: 700; color: #0f766e; white-space: nowrap; margin-left: 8px; }
+      .meal-item-select { -webkit-appearance: none; appearance: none; border: none; background: none; color: #1e293b; font-size: 0.82rem; font-weight: 600; flex: 1; pointer-events: none; }
       .plan-total { background: #0f766e; color: white; border-radius: 8px; padding: 12px 14px; text-align: center; font-size: 0.88rem; font-weight: 800; margin-top: 8px; }
       .plan-macros { display: flex; justify-content: center; gap: 16px; margin-top: 5px; font-size: 0.75rem; opacity: .85; }
     }
@@ -686,6 +702,7 @@
       .meal-item { flex-wrap: wrap; row-gap: 2px; }
       .meal-item-qty { margin-left: 0; font-size: 0.8rem; }
       .meal-item-name { flex: 1 1 100%; }
+      .meal-item-select { flex: 1 1 100%; max-width: 100%; font-size: 0.8rem; }
 
       /* Legendas de macro */
       .legend { flex-wrap: wrap; gap: 12px; }
@@ -1675,6 +1692,23 @@ function fmtQty(name, g, cal) {
   return `${g}g${u} · ${cal} kcal`;
 }
 
+function getPlanDb() {
+  const isVeg      = document.getElementById('r-veg').checked;
+  const semGluten  = document.getElementById('r-gluten').checked;
+  const semLactose = document.getElementById('r-lactose').checked;
+  let db = PLAN_DB;
+  if (isVeg)      db = db.filter(f => !/frango|atum|sardinha|patinho|alcatra|carne moída|presunto|tilápia|lombo suíno/.test(f.name.toLowerCase()));
+  if (semGluten)  db = db.filter(f => !/pão|macarrão/.test(f.name.toLowerCase()));
+  if (semLactose) db = db.filter(f => catFood(f) !== 'laticinios');
+  return db;
+}
+
+function getAlternatives(pool, db) {
+  if (!Array.isArray(pool)) return db.filter(f => catFood(f) === pool);
+  if (pool.every(p => CAT_NAMES.has(p))) return db.filter(f => pool.includes(catFood(f)));
+  return pool.map(name => db.find(f => f.name === name)).filter(Boolean);
+}
+
 function generatePlan() {
   const objetivo  = document.getElementById('p-objetivo').value;
   const calDia    = parseFloat(document.getElementById('p-cal').value);
@@ -1684,15 +1718,10 @@ function generatePlan() {
     return;
   }
 
-  const isVeg     = document.getElementById('r-veg').checked;
-  const semGluten = document.getElementById('r-gluten').checked;
-  const semLactose= document.getElementById('r-lactose').checked;
-
-  let db = PLAN_DB;
-  if (isVeg)      db = db.filter(f => !/frango|atum|sardinha|patinho|alcatra|carne moída|presunto|tilápia|lombo suíno/.test(f.name.toLowerCase())); // mantém ovos e laticínios
-  if (semGluten)  db = db.filter(f => !/pão|macarrão/.test(f.name.toLowerCase()));
-  if (semLactose) db = db.filter(f => catFood(f) !== 'laticinios');
-
+  const db = getPlanDb();
+  const isVeg      = document.getElementById('r-veg').checked;
+  const semGluten  = document.getElementById('r-gluten').checked;
+  const semLactose = document.getElementById('r-lactose').checked;
   const restricoes = [isVeg && 'vegetariano', semGluten && 'sem glúten', semLactose && 'sem lactose'].filter(Boolean);
 
   const plano = PLANOS[objetivo];
@@ -1701,13 +1730,13 @@ function generatePlan() {
   let html = '';
 
   for (const ref of plano) {
-    const refTarget = calDia * ref.pct;
-    const pools = ref.templates
+    const refTarget  = calDia * ref.pct;
+    const pools      = ref.templates
       ? ref.templates[Math.floor(Math.random() * ref.templates.length)]
       : ref.slots;
     const calPerSlot = refTarget / pools.length;
-    const items = [];
-    let refCalReal = 0;
+    const items      = [];
+    let refCalReal   = 0;
 
     for (const pool of pools) {
       const food = pickFood(pool, used, db);
@@ -1729,15 +1758,30 @@ function generatePlan() {
       totalProt  += prot;
       totalCarb  += carb;
       totalFat   += fat;
-      items.push({ name: food.name, g, cal });
+      items.push({ name: food.name, g, cal, prot, carb, fat, calTarget: calPerSlot, pool });
     }
 
     html += `<div class="meal-card">
       <div class="meal-title">${ref.nome}<span class="meal-kcal">${refCalReal} kcal</span></div>
-      ${items.map(it => `<div class="meal-item">
-        <span class="meal-item-name">${it.name}</span>
-        <span class="meal-item-qty">${fmtQty(it.name, it.g, it.cal)}</span>
-      </div>`).join('')}
+      ${items.map(it => {
+        const alts = getAlternatives(it.pool, db);
+        if (!alts.find(f => f.name === it.name)) {
+          const fallback = PLAN_DB.find(f => f.name === it.name);
+          if (fallback) alts.unshift(fallback);
+        }
+        const opts = alts.map(f =>
+          `<option value="${f.name}" data-cal="${f.cal}"${f.name === it.name ? ' selected' : ''}>${f.name}</option>`
+        ).join('');
+        return `<div class="meal-item"
+          data-target-cal="${Math.round(it.calTarget)}"
+          data-actual-cal="${it.cal}"
+          data-actual-prot="${it.prot}"
+          data-actual-carb="${it.carb}"
+          data-actual-fat="${it.fat}">
+          <select class="meal-item-select" onchange="updateItem(this)">${opts}</select>
+          <span class="meal-item-qty">${fmtQty(it.name, it.g, it.cal)}</span>
+        </div>`;
+      }).join('')}
     </div>`;
   }
 
@@ -1746,7 +1790,7 @@ function generatePlan() {
     : '';
 
   html += `<div class="plan-total">
-    Total do dia: ${totalCal} kcal
+    <span class="plan-total-kcal">Total do dia: ${totalCal} kcal</span>
     <div class="plan-macros">
       <span>Proteína ${totalProt.toFixed(0)}g</span>
       <span>Carb ${totalCarb.toFixed(0)}g</span>
@@ -1778,6 +1822,52 @@ function printPlan() {
   document.getElementById('printMeta').textContent = `Objetivo: ${objLabel} · ${cal} kcal/dia`;
   document.getElementById('printContent').innerHTML = document.getElementById('planResult').innerHTML;
   window.print();
+}
+
+function updateItem(sel) {
+  const item = sel.closest('.meal-item');
+  const food = PLAN_DB.find(f => f.name === sel.value);
+  if (!food) return;
+
+  const targetCal = parseFloat(item.dataset.targetCal);
+  const [mn, mx]  = LIMITES[catFood(food)] || [30, 200];
+  let g = Math.round((targetCal / food.cal) * 100);
+  g = Math.min(Math.max(g, mn), mx);
+
+  const fac = g / 100;
+  item.dataset.actualCal  = Math.round(food.cal  * fac);
+  item.dataset.actualProt = (food.prot * fac).toFixed(1);
+  item.dataset.actualCarb = (food.carb * fac).toFixed(1);
+  item.dataset.actualFat  = (food.fat  * fac).toFixed(1);
+  item.querySelector('.meal-item-qty').textContent = fmtQty(food.name, g, Math.round(food.cal * fac));
+
+  recalcTotals();
+}
+
+function recalcTotals() {
+  let dayCalTotal = 0, dayProtTotal = 0, dayCarbTotal = 0, dayFatTotal = 0;
+
+  document.querySelectorAll('#planResult .meal-card').forEach(card => {
+    let mealCal = 0;
+    card.querySelectorAll('.meal-item').forEach(item => {
+      const c = parseInt(item.dataset.actualCal || 0);
+      mealCal      += c;
+      dayCalTotal  += c;
+      dayProtTotal += parseFloat(item.dataset.actualProt || 0);
+      dayCarbTotal += parseFloat(item.dataset.actualCarb || 0);
+      dayFatTotal  += parseFloat(item.dataset.actualFat  || 0);
+    });
+    card.querySelector('.meal-kcal').textContent = mealCal + ' kcal';
+  });
+
+  const kcalEl = document.querySelector('#planResult .plan-total-kcal');
+  if (kcalEl) kcalEl.textContent = `Total do dia: ${dayCalTotal} kcal`;
+
+  const macrosEl = document.querySelector('#planResult .plan-macros');
+  if (macrosEl) macrosEl.innerHTML = `
+    <span>Proteína ${dayProtTotal.toFixed(0)}g</span>
+    <span>Carb ${dayCarbTotal.toFixed(0)}g</span>
+    <span>Gordura ${dayFatTotal.toFixed(0)}g</span>`;
 }
 
 // ── Calculadora de Harris-Benedict ──────────────────────────────
