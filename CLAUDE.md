@@ -42,7 +42,8 @@ Modal opened by `openHB()`. Fields: `h-sexo`, `h-ativ` (activity factor 1.2–1.
 Modal opened by `openPlan()`. Inputs: `p-objetivo` (emagrecer / manter / massa), `p-cal`, dietary restriction checkboxes (`r-veg`, `r-gluten`, `r-lactose`).
 
 **Data layer:**  
-`PLAN_NAMES` — Set of ~57 practical Brazilian supermarket foods that form `PLAN_DB = DB.filter(f => PLAN_NAMES.has(f.name))`.
+`PLAN_NAMES` — Set of ~57 practical Brazilian supermarket foods that form `PLAN_DB = DB.filter(f => PLAN_NAMES.has(f.name))`.  
+`getPlanDb()` — returns `PLAN_DB` filtered by the current restriction checkboxes. Called by both `generatePlan()` and (implicitly) at edit time.
 
 **Categorisation (`catFood(f)`):** assigns each food to one of: `proteina_cafe`, `proteina_refeicao`, `graos_cafe`, `graos_refeicao`, `leguminosa`, `gordura`, `fruta`, `verdura`, `laticinios` via regex.
 
@@ -61,7 +62,7 @@ Each `PLANOS` entry has `templates: T_*` — an array of meal templates. `genera
 `pickFood(pool, used, db)` distinguishes the three cases via `CAT_NAMES` (a Set of all category name strings).
 
 **Template constants** (all defined before `PLANOS`):
-`T_CAFE`, `T_LANCHE`, `T_LANCHE_MASSA`, `T_ALMOCO`, `T_JANTAR_EMAGR`, `T_JANTAR`, `T_PRETREINO`, `T_CEIA_MANTER`, `T_CEIA_MASSA`, `T_LANCHE_MANHA`.
+`T_CAFE`, `T_LANCHE`, `T_LANCHE_MASSA`, `T_ALMOCO`, `T_JANTAR_EMAGR`, `T_JANTAR`.
 
 **Meal structure — 4 meals per objective:**
 
@@ -72,9 +73,33 @@ Each `PLANOS` entry has `templates: T_*` — an array of meal templates. `genera
 | 🥗 Lanche da tarde | 15% T_LANCHE | 15% T_LANCHE | 15% T_LANCHE_MASSA |
 | 🌙 Jantar | 25% T_JANTAR_EMAGR | 25% T_JANTAR | 25% T_JANTAR |
 
-`LIMITES` — per-category `[min, max]` gram clamps applied after calorie-target calculation. `gordura` (azeite) is `[10, 20]` and is never added to the `used` Set so it can repeat across meals.
+`LIMITES` — per-category `[min, max]` gram clamps applied at generation time. `gordura` (azeite) is `[10, 20]` and is never added to the `used` Set so it can repeat across meals.
 
-`fmtQty(name, g, cal)` — converts grams to human units for specific foods (ovos, claras, doses de whey, fatias de pão, unidades de fruta, colheres de azeite).
+`fmtQty(name, g, cal)` — converts grams to human units for specific foods (ovos, claras, doses de whey, fatias de pão, unidades de fruta, colheres de azeite). Returns `"Xg (N unidades) · Y kcal"`.
+
+### Editable meal plan items
+
+After generation, each food renders as a text input (`.meal-item-input`) inside `.meal-item-ac` (positioned wrapper that hosts the autocomplete dropdown `.meal-item-dd`). The full `DB` is searchable — not just `PLAN_DB`.
+
+**Calorie balance locking:**  
+`generatePlan()` stores the original day total on `planResult.dataset.targetTotal`. When the user picks a replacement food, `selectPlanFood(inp, food)` computes:
+
+```
+neededCal = dataset.targetTotal − sum(all other items' data-actual-cal)
+g         = round(neededCal / food.cal * 100)
+item.dataset.actualCal = neededCal   // forced exact, not re-rounded from g
+```
+
+This guarantees the sum of all `data-actual-cal` values always equals `targetTotal`, regardless of rounding or how many swaps occur. `LIMITES` are intentionally not applied on this path.
+
+`setupPlanItemAC(inp, dd)` — wires fuzzy search + keyboard navigation to a plan item input. Called for each `.meal-item-input` after `box.innerHTML` is set.  
+`recalcTotals()` — recomputes per-meal `.meal-kcal` chips and macro totals from `data-actual-*` attributes; displays `dataset.targetTotal` (locked) for the day total.
+
+### PDF export
+
+`printPlan()` — syncs `.meal-item-input` `.value` → `value` attribute (so edited names survive innerHTML clone), copies `#planResult` into the hidden `#printArea` div with a header (`#printMeta`), then calls `window.print()`. Print styles strip interactivity from inputs and hide dropdowns. No external libraries.
+
+`#btnPdf` and `#btnClosePlan` are hidden until `generatePlan()` succeeds. Similarly `#btnCloseHB` and `#btnCloseWater` appear only after their respective calculations.
 
 ### Dark / light mode
 
@@ -96,4 +121,5 @@ Each `PLANOS` entry has `templates: T_*` — an array of meal templates. `genera
 - `--green` affects header, main button, focus rings, and result highlights — changes ripple everywhere.
 - New modals follow the pattern: `modal-bg.hidden` → `modal` → result div toggled with `.hidden`. Field ID prefixes: `w-` water, `h-` Harris-Benedict, `p-` meal planner.
 - Presunto, sardinha, atum are **breakfast/snack proteins** — never include them in `T_ALMOCO` or `T_JANTAR` templates.
+- When editing meal plan items, `LIMITES` are **not** applied — the calorie balance constraint takes priority over gram limits.
 - GitHub credentials are stored in the Windows Credential Manager — `git push` works without any token in the URL.
