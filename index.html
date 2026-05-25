@@ -1923,7 +1923,8 @@ function recalcTotals() {
   });
 
   const kcalEl = document.querySelector('#planResult .plan-total-kcal');
-  if (kcalEl) kcalEl.textContent = `Total do dia: ${dayCalTotal} kcal`;
+  const lockedTotal = document.getElementById('planResult').dataset.targetTotal;
+  if (kcalEl) kcalEl.textContent = `Total do dia: ${lockedTotal} kcal`;
 
   const macrosEl = document.querySelector('#planResult .plan-macros');
   if (macrosEl) macrosEl.innerHTML = `
