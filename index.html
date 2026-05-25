@@ -1897,11 +1897,11 @@ function selectPlanFood(inp, food) {
   const g = Math.max(1, Math.round(neededCal / food.cal * 100));
 
   const fac = g / 100;
-  item.dataset.actualCal  = Math.round(food.cal  * fac);
+  item.dataset.actualCal  = neededCal;                      // forçado para garantir soma exata
   item.dataset.actualProt = (food.prot * fac).toFixed(1);
   item.dataset.actualCarb = (food.carb * fac).toFixed(1);
   item.dataset.actualFat  = (food.fat  * fac).toFixed(1);
-  item.querySelector('.meal-item-qty').textContent = fmtQty(food.name, g, Math.round(food.cal * fac));
+  item.querySelector('.meal-item-qty').textContent = fmtQty(food.name, g, neededCal);
 
   recalcTotals();
 }
