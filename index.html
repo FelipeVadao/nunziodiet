@@ -31,13 +31,13 @@
 
     /* ── Header ── */
     header {
-      background: var(--green);
-      padding: 40px 24px 36px;
+      background: linear-gradient(160deg, #72d426 0%, var(--green-dark) 100%);
+      padding: 36px 24px 32px;
       text-align: center;
       color: var(--charcoal);
     }
     .header-inner { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 10px; }
-    .logo { font-size: 2.4rem; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+    .logo { font-size: 3rem; font-weight: 900; letter-spacing: -2px; line-height: 1; }
     .logo em { font-style: normal; color: var(--charcoal); }
     .logo span { font-style: normal; color: white; }
     .tagline { font-size: 0.95rem; color: var(--charcoal); opacity: .75; font-weight: 500; letter-spacing: .5px; }
@@ -358,6 +358,51 @@
     }
     .meal-item-input:focus { border-bottom-color: var(--green); }
     .meal-item-dd { top: 100%; left: 0; right: 0; }
+    /* ── Add / Remove controles ── */
+    .btn-rm-food {
+      flex-shrink: 0;
+      border: none; background: none;
+      color: #9ca3af; font-size: 1rem;
+      cursor: pointer; padding: 2px 4px; margin-left: 4px;
+      line-height: 1; transition: color .15s;
+    }
+    .btn-rm-food:hover { color: #ef4444; }
+    .btn-rm-meal {
+      border: none; background: none;
+      color: #9ca3af; font-size: 0.9rem;
+      cursor: pointer; padding: 2px 5px; line-height: 1;
+      transition: color .15s; margin-left: 6px;
+    }
+    .btn-rm-meal:hover { color: #ef4444; }
+    .btn-add-food {
+      display: block; width: 100%; margin-top: 8px; padding: 7px;
+      background: transparent; border: 1.5px dashed rgba(98,200,35,0.5);
+      border-radius: 8px; color: var(--green-xdark);
+      font-size: 0.76rem; font-weight: 700; cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .btn-add-food:hover { background: var(--green); color: #fff; border-style: solid; }
+    .btn-add-meal {
+      display: block; width: 100%; margin: 8px 0; padding: 10px;
+      background: transparent; border: 1.5px dashed rgba(15,118,110,0.5);
+      border-radius: 10px; color: #0f766e;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .btn-add-meal:hover { background: #0f766e; color: #fff; border-style: solid; }
+    .meal-name-input {
+      border: none; border-bottom: 1px dashed #4b5563;
+      background: transparent; font-size: 0.78rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .8px;
+      color: #0f766e; outline: none; flex: 1; padding: 0; min-width: 0;
+    }
+    [data-theme="dark"] .btn-rm-food { color: #4b5563; }
+    [data-theme="dark"] .btn-rm-meal { color: #4b5563; }
+    [data-theme="dark"] .btn-add-food { color: var(--green); border-color: rgba(98,200,35,0.3); }
+    [data-theme="dark"] .btn-add-food:hover { color: #000; }
+    [data-theme="dark"] .btn-add-meal { color: #0d9488; border-color: rgba(13,148,136,0.3); }
+    [data-theme="dark"] .btn-add-meal:hover { background: #0d9488; color: #000; }
+    [data-theme="dark"] .meal-name-input { color: #0d9488; border-bottom-color: #333; }
     .plan-total {
       background: #0f766e;
       color: white;
@@ -546,27 +591,36 @@
 
     /* ── Dark mode ──────────────────────────────────────────── */
     [data-theme="dark"] {
-      --green-bg: #111827;
-      --charcoal: #f1f5f9;
-      --text: #f1f5f9;
-      --text-muted: #94a3b8;
-      --border: #1e3018;
-      --purple-light: #3b0764;
-      --card-shadow: 0 4px 24px rgba(0,0,0,.5);
+      --green-bg: #090909;
+      --charcoal: #f0f4f0;
+      --text: #e8ede8;
+      --text-muted: #6b7280;
+      --border: rgba(98,200,35,0.12);
+      --purple-light: #2e1065;
+      --card-shadow: 0 4px 32px rgba(0,0,0,.7), 0 0 0 1px rgba(98,200,35,0.06);
     }
-    [data-theme="dark"] body { background: #111827; color: #f1f5f9; }
+    [data-theme="dark"] body { background: #090909; color: #e8ede8; }
+    [data-theme="dark"] header {
+      background: #000;
+      border-bottom: 1.5px solid #62C823;
+      box-shadow: 0 0 60px rgba(98,200,35,0.12), 0 2px 0 rgba(98,200,35,0.3);
+    }
+    [data-theme="dark"] .logo em { color: #62C823; text-shadow: 0 0 28px rgba(98,200,35,.7), 0 0 60px rgba(98,200,35,.3); }
+    [data-theme="dark"] .logo span { color: #fff; }
+    [data-theme="dark"] .theme-toggle { background: rgba(98,200,35,0.1); color: #fff; }
+    [data-theme="dark"] .theme-toggle:hover { background: rgba(98,200,35,0.22); }
     [data-theme="dark"] .card,
-    [data-theme="dark"] .macro-card { background: #1e293b; border-color: #334155; }
+    [data-theme="dark"] .macro-card { background: #111; border-color: rgba(98,200,35,0.12); }
     [data-theme="dark"] .note { background: #1c1300; border-color: #854d0e; color: #fcd34d; }
     [data-theme="dark"] .note strong { color: #fde68a; }
     [data-theme="dark"] input[type="text"],
-    [data-theme="dark"] input[type="number"] { background: #0f172a; border-color: #334155; color: #f1f5f9; }
-    [data-theme="dark"] input:focus { background: #1e293b; }
-    [data-theme="dark"] select.plan-select { background: #0f172a; border-color: #334155; color: #f1f5f9; }
-    [data-theme="dark"] .dropdown { background: #1e293b; border-color: #334155; }
-    [data-theme="dark"] .dd-item { border-color: #1e293b; color: #f1f5f9; }
+    [data-theme="dark"] input[type="number"] { background: #0a0a0a; border-color: #222; color: #e8ede8; }
+    [data-theme="dark"] input:focus { background: #111; border-color: rgba(98,200,35,0.5); }
+    [data-theme="dark"] select.plan-select { background: #0a0a0a; border-color: #222; color: #e8ede8; }
+    [data-theme="dark"] .dropdown { background: #111; border-color: rgba(98,200,35,0.2); }
+    [data-theme="dark"] .dd-item { border-color: #1a1a1a; color: #e8ede8; }
     [data-theme="dark"] .dd-item:hover,
-    [data-theme="dark"] .dd-item.hi { background: #1e3a1e; }
+    [data-theme="dark"] .dd-item.hi { background: #0d1f0d; }
     [data-theme="dark"] .dd-cal,
     [data-theme="dark"] .dd-empty { color: #94a3b8; }
     [data-theme="dark"] .btn:hover { box-shadow: 0 8px 28px rgba(98,200,35,.35); }
@@ -576,12 +630,12 @@
     [data-theme="dark"] .btn-imc:hover { box-shadow: 0 8px 24px rgba(124,58,237,.5); }
     [data-theme="dark"] .btn-plan { background: #0d9488; }
     [data-theme="dark"] .btn-plan:hover { box-shadow: 0 8px 24px rgba(13,148,136,.5); }
-    [data-theme="dark"] .modal { background: #1e293b; }
+    [data-theme="dark"] .modal { background: #111; border: 1px solid rgba(98,200,35,0.1); }
     [data-theme="dark"] .modal-title { color: #f1f5f9; }
     [data-theme="dark"] .modal-close { color: #94a3b8; }
     [data-theme="dark"] .modal-close:hover { color: #f1f5f9; }
-    [data-theme="dark"] .meal-card { background: #0f172a; border-color: #334155; }
-    [data-theme="dark"] .meal-item { border-color: #1e293b; }
+    [data-theme="dark"] .meal-card { background: #0d0d0d; border-color: rgba(98,200,35,0.1); }
+    [data-theme="dark"] .meal-item { border-color: #1a1a1a; }
     [data-theme="dark"] .meal-item-name { color: #e2e8f0; }
     [data-theme="dark"] .meal-item-input { color: #e2e8f0; border-bottom-color: #334155; }
     [data-theme="dark"] .bar-bg { background: #334155; }
@@ -594,7 +648,7 @@
     [data-theme="dark"] .chip-a { background: #1a3a0a; color: #86efac; }
     [data-theme="dark"] .chip-b { background: #2e1065; color: #c4b5fd; }
     [data-theme="dark"] .water-tip { background: rgba(98,200,35,.1); color: #86efac; }
-    [data-theme="dark"] .tagline { opacity: 1; color: rgba(255,255,255,.8); }
+    [data-theme="dark"] .tagline { opacity: 1; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
 
     /* Botão de tema */
     .theme-toggle {
@@ -1775,7 +1829,11 @@ function generatePlan() {
     }
 
     html += `<div class="meal-card">
-      <div class="meal-title">${ref.nome}<span class="meal-kcal">${refCalReal} kcal</span></div>
+      <div class="meal-title">
+        <span>${ref.nome}</span>
+        <span class="meal-kcal">${refCalReal} kcal</span>
+        <button class="btn-rm-meal" onclick="removeMeal(this)" title="Remover refeição">×</button>
+      </div>
       ${items.map(it => `<div class="meal-item"
           data-target-cal="${Math.round(it.calTarget)}"
           data-actual-cal="${it.cal}"
@@ -1787,7 +1845,9 @@ function generatePlan() {
             <div class="meal-item-dd dropdown"></div>
           </div>
           <span class="meal-item-qty">${fmtQty(it.name, it.g, it.cal)}</span>
+          <button class="btn-rm-food" onclick="removeFood(this)" title="Remover alimento">×</button>
         </div>`).join('')}
+      <button class="btn-add-food" onclick="addFood(this)">＋ Alimento</button>
     </div>`;
   }
 
@@ -1795,6 +1855,7 @@ function generatePlan() {
     ? `<div style="font-size:.75rem;opacity:.8;margin-top:6px">Cardápio adaptado: ${restricoes.join(', ')}</div>`
     : '';
 
+  html += `<button class="btn-add-meal" onclick="addMeal()">＋ Adicionar refeição</button>`;
   html += `<div class="plan-total">
     <span class="plan-total-kcal">Total do dia: ${totalCal} kcal</span>
     <div class="plan-macros">
@@ -1883,26 +1944,34 @@ function setupPlanItemAC(inp, dd) {
 }
 
 function selectPlanFood(inp, food) {
-  const item      = inp.closest('.meal-item');
-  const planBox   = document.getElementById('planResult');
-  const dayTarget = parseInt(planBox.dataset.targetTotal || 0);
+  const item    = inp.closest('.meal-item');
+  const isNew   = parseInt(item.dataset.actualCal || 0) === 0;
+  const planBox = document.getElementById('planResult');
+  let g, actualCal;
 
-  // Sum all OTHER items to know exactly how many kcal this item must contribute
-  let othersTotal = 0;
-  planBox.querySelectorAll('.meal-item').forEach(el => {
-    if (el !== item) othersTotal += parseInt(el.dataset.actualCal || 0);
-  });
-
-  const neededCal = Math.max(1, dayTarget - othersTotal);
-  const g = Math.max(1, Math.round(neededCal / food.cal * 100));
+  if (isNew) {
+    const [mn] = LIMITES[catFood(food)] || [30, 200];
+    g = Math.max(mn, 100);
+    actualCal = Math.round(food.cal * g / 100);
+  } else {
+    const dayTarget = parseInt(planBox.dataset.targetTotal || 0);
+    let othersTotal = 0;
+    planBox.querySelectorAll('.meal-item').forEach(el => {
+      if (el !== item) othersTotal += parseInt(el.dataset.actualCal || 0);
+    });
+    const neededCal = Math.max(1, dayTarget - othersTotal);
+    g = Math.max(1, Math.round(neededCal / food.cal * 100));
+    actualCal = neededCal;
+  }
 
   const fac = g / 100;
-  item.dataset.actualCal  = neededCal;                      // forçado para garantir soma exata
+  item.dataset.actualCal  = actualCal;
   item.dataset.actualProt = (food.prot * fac).toFixed(1);
   item.dataset.actualCarb = (food.carb * fac).toFixed(1);
   item.dataset.actualFat  = (food.fat  * fac).toFixed(1);
-  item.querySelector('.meal-item-qty').textContent = fmtQty(food.name, g, neededCal);
+  item.querySelector('.meal-item-qty').textContent = fmtQty(food.name, g, actualCal);
 
+  if (isNew) updateTargetTotal();
   recalcTotals();
 }
 
@@ -1923,14 +1992,70 @@ function recalcTotals() {
   });
 
   const kcalEl = document.querySelector('#planResult .plan-total-kcal');
-  const lockedTotal = document.getElementById('planResult').dataset.targetTotal;
-  if (kcalEl) kcalEl.textContent = `Total do dia: ${lockedTotal} kcal`;
+  if (kcalEl) kcalEl.textContent = `Total do dia: ${dayCalTotal} kcal`;
 
   const macrosEl = document.querySelector('#planResult .plan-macros');
   if (macrosEl) macrosEl.innerHTML = `
     <span>Proteína ${dayProtTotal.toFixed(0)}g</span>
     <span>Carb ${dayCarbTotal.toFixed(0)}g</span>
     <span>Gordura ${dayFatTotal.toFixed(0)}g</span>`;
+}
+
+function updateTargetTotal() {
+  let total = 0;
+  document.querySelectorAll('#planResult .meal-item').forEach(item => {
+    total += parseInt(item.dataset.actualCal || 0);
+  });
+  document.getElementById('planResult').dataset.targetTotal = total;
+}
+
+function removeFood(btn) {
+  btn.closest('.meal-item').remove();
+  updateTargetTotal();
+  recalcTotals();
+}
+
+function addFood(btn) {
+  const card = btn.closest('.meal-card');
+  const div = document.createElement('div');
+  div.className = 'meal-item';
+  div.dataset.targetCal   = '0';
+  div.dataset.actualCal   = '0';
+  div.dataset.actualProt  = '0';
+  div.dataset.actualCarb  = '0';
+  div.dataset.actualFat   = '0';
+  div.innerHTML = `
+    <div class="meal-item-ac">
+      <input type="text" class="meal-item-input" placeholder="Digitar alimento..." autocomplete="off" spellcheck="false">
+      <div class="meal-item-dd dropdown"></div>
+    </div>
+    <span class="meal-item-qty"></span>
+    <button class="btn-rm-food" onclick="removeFood(this)" title="Remover">×</button>`;
+  btn.before(div);
+  const inp = div.querySelector('.meal-item-input');
+  setupPlanItemAC(inp, inp.nextElementSibling);
+  inp.focus();
+}
+
+function removeMeal(btn) {
+  btn.closest('.meal-card').remove();
+  updateTargetTotal();
+  recalcTotals();
+}
+
+function addMeal() {
+  const planResult = document.getElementById('planResult');
+  const addMealBtn = planResult.querySelector('.btn-add-meal');
+  const card = document.createElement('div');
+  card.className = 'meal-card';
+  card.innerHTML = `
+    <div class="meal-title">
+      <input class="meal-name-input" type="text" placeholder="Nome da refeição" value="🍴 Nova refeição">
+      <span class="meal-kcal">0 kcal</span>
+      <button class="btn-rm-meal" onclick="removeMeal(this)" title="Remover refeição">×</button>
+    </div>
+    <button class="btn-add-food" onclick="addFood(this)">＋ Alimento</button>`;
+  addMealBtn.before(card);
 }
 
 // ── Calculadora de Harris-Benedict ──────────────────────────────
