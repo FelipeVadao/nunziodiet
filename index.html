@@ -1807,6 +1807,7 @@ function generatePlan() {
 
   const box = document.getElementById('planResult');
   box.innerHTML = html;
+  box.dataset.targetTotal = totalCal;
   box.querySelectorAll('.meal-item-input').forEach(inp => {
     setupPlanItemAC(inp, inp.nextElementSibling);
   });
@@ -1882,11 +1883,18 @@ function setupPlanItemAC(inp, dd) {
 }
 
 function selectPlanFood(inp, food) {
-  const item = inp.closest('.meal-item');
-  const targetCal = parseFloat(item.dataset.targetCal);
-  const [mn, mx] = LIMITES[catFood(food)] || [30, 200];
-  let g = Math.round((targetCal / food.cal) * 100);
-  g = Math.min(Math.max(g, mn), mx);
+  const item      = inp.closest('.meal-item');
+  const planBox   = document.getElementById('planResult');
+  const dayTarget = parseInt(planBox.dataset.targetTotal || 0);
+
+  // Sum all OTHER items to know exactly how many kcal this item must contribute
+  let othersTotal = 0;
+  planBox.querySelectorAll('.meal-item').forEach(el => {
+    if (el !== item) othersTotal += parseInt(el.dataset.actualCal || 0);
+  });
+
+  const neededCal = Math.max(1, dayTarget - othersTotal);
+  const g = Math.max(1, Math.round(neededCal / food.cal * 100));
 
   const fac = g / 100;
   item.dataset.actualCal  = Math.round(food.cal  * fac);
