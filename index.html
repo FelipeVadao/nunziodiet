@@ -343,20 +343,21 @@
     .meal-item:last-child { border-bottom: none; }
     .meal-item-name { color: #1e293b; }
     .meal-item-qty { font-weight: 700; color: #0f766e; white-space: nowrap; margin-left: 8px; }
-    .meal-item-select {
+    .meal-item-ac { position: relative; flex: 1; min-width: 0; }
+    .meal-item-input {
       border: none;
-      border-bottom: 1.5px dashed var(--green);
+      border-bottom: 1.5px solid #e2e8f0;
       background: transparent;
       font-size: 0.83rem;
       font-weight: 600;
       color: #1e293b;
-      cursor: pointer;
+      width: 100%;
+      padding: 2px 0 3px;
       outline: none;
-      padding: 2px 2px 2px 0;
-      flex: 1;
-      min-width: 0;
+      transition: border-color .2s;
     }
-    .meal-item-select:focus { border-bottom-style: solid; }
+    .meal-item-input:focus { border-bottom-color: var(--green); }
+    .meal-item-dd { top: 100%; left: 0; right: 0; }
     .plan-total {
       background: #0f766e;
       color: white;
@@ -569,7 +570,7 @@
     [data-theme="dark"] .meal-card { background: #0f172a; border-color: #334155; }
     [data-theme="dark"] .meal-item { border-color: #1e293b; }
     [data-theme="dark"] .meal-item-name { color: #e2e8f0; }
-    [data-theme="dark"] .meal-item-select { color: #e2e8f0; background: transparent; }
+    [data-theme="dark"] .meal-item-input { color: #e2e8f0; border-bottom-color: #334155; }
     [data-theme="dark"] .bar-bg { background: #334155; }
     [data-theme="dark"] .m-name { color: #f1f5f9; }
     [data-theme="dark"] .hb-stat { background: #2e1a4e; border-color: #4c1d95; }
@@ -639,7 +640,9 @@
       .meal-item:last-child { border-bottom: none; }
       .meal-item-name { color: #1e293b; }
       .meal-item-qty { font-weight: 700; color: #0f766e; white-space: nowrap; margin-left: 8px; }
-      .meal-item-select { -webkit-appearance: none; appearance: none; border: none; background: none; color: #1e293b; font-size: 0.82rem; font-weight: 600; flex: 1; pointer-events: none; }
+      .meal-item-ac { flex: 1; }
+      .meal-item-input { border: none; font-size: 0.82rem; font-weight: 600; color: #1e293b; background: none; width: auto; }
+      .meal-item-dd { display: none !important; }
       .plan-total { background: #0f766e; color: white; border-radius: 8px; padding: 12px 14px; text-align: center; font-size: 0.88rem; font-weight: 800; margin-top: 8px; }
       .plan-macros { display: flex; justify-content: center; gap: 16px; margin-top: 5px; font-size: 0.75rem; opacity: .85; }
     }
@@ -702,7 +705,8 @@
       .meal-item { flex-wrap: wrap; row-gap: 2px; }
       .meal-item-qty { margin-left: 0; font-size: 0.8rem; }
       .meal-item-name { flex: 1 1 100%; }
-      .meal-item-select { flex: 1 1 100%; max-width: 100%; font-size: 0.8rem; }
+      .meal-item-ac { flex: 1 1 100%; }
+      .meal-item-input { font-size: 1rem; }
 
       /* Legendas de macro */
       .legend { flex-wrap: wrap; gap: 12px; }
@@ -1703,11 +1707,6 @@ function getPlanDb() {
   return db;
 }
 
-function getAlternatives(pool, db) {
-  if (!Array.isArray(pool)) return db.filter(f => catFood(f) === pool);
-  if (pool.every(p => CAT_NAMES.has(p))) return db.filter(f => pool.includes(catFood(f)));
-  return pool.map(name => db.find(f => f.name === name)).filter(Boolean);
-}
 
 function generatePlan() {
   const objetivo  = document.getElementById('p-objetivo').value;
@@ -1758,30 +1757,23 @@ function generatePlan() {
       totalProt  += prot;
       totalCarb  += carb;
       totalFat   += fat;
-      items.push({ name: food.name, g, cal, prot, carb, fat, calTarget: calPerSlot, pool });
+      items.push({ name: food.name, g, cal, prot, carb, fat, calTarget: calPerSlot });
     }
 
     html += `<div class="meal-card">
       <div class="meal-title">${ref.nome}<span class="meal-kcal">${refCalReal} kcal</span></div>
-      ${items.map(it => {
-        const alts = getAlternatives(it.pool, db);
-        if (!alts.find(f => f.name === it.name)) {
-          const fallback = PLAN_DB.find(f => f.name === it.name);
-          if (fallback) alts.unshift(fallback);
-        }
-        const opts = alts.map(f =>
-          `<option value="${f.name}" data-cal="${f.cal}"${f.name === it.name ? ' selected' : ''}>${f.name}</option>`
-        ).join('');
-        return `<div class="meal-item"
+      ${items.map(it => `<div class="meal-item"
           data-target-cal="${Math.round(it.calTarget)}"
           data-actual-cal="${it.cal}"
           data-actual-prot="${it.prot}"
           data-actual-carb="${it.carb}"
           data-actual-fat="${it.fat}">
-          <select class="meal-item-select" onchange="updateItem(this)">${opts}</select>
+          <div class="meal-item-ac">
+            <input type="text" class="meal-item-input" value="${it.name}" autocomplete="off" spellcheck="false">
+            <div class="meal-item-dd dropdown"></div>
+          </div>
           <span class="meal-item-qty">${fmtQty(it.name, it.g, it.cal)}</span>
-        </div>`;
-      }).join('')}
+        </div>`).join('')}
     </div>`;
   }
 
@@ -1801,6 +1793,9 @@ function generatePlan() {
 
   const box = document.getElementById('planResult');
   box.innerHTML = html;
+  box.querySelectorAll('.meal-item-input').forEach(inp => {
+    setupPlanItemAC(inp, inp.nextElementSibling);
+  });
   box.classList.remove('hidden');
   document.getElementById('btnPdf').classList.remove('hidden');
   document.getElementById('btnClosePlan').classList.remove('hidden');
@@ -1816,6 +1811,9 @@ function closePlan() { document.getElementById('planModal').classList.add('hidde
 function closePlanOnBg(e) { if (e.target.id === 'planModal') closePlan(); }
 
 function printPlan() {
+  document.querySelectorAll('#planResult .meal-item-input').forEach(inp => {
+    inp.setAttribute('value', inp.value);
+  });
   const objetivo = document.getElementById('p-objetivo').value;
   const cal = document.getElementById('p-cal').value;
   const objLabel = { emagrecer: 'Emagrecer', manter: 'Manter peso', massa: 'Ganhar massa' }[objetivo] || objetivo;
@@ -1824,13 +1822,55 @@ function printPlan() {
   window.print();
 }
 
-function updateItem(sel) {
-  const item = sel.closest('.meal-item');
-  const food = PLAN_DB.find(f => f.name === sel.value);
-  if (!food) return;
+function setupPlanItemAC(inp, dd) {
+  let hi = -1;
 
+  inp.addEventListener('input', () => {
+    const q = inp.value.trim();
+    if (!q) { dd.classList.remove('open'); return; }
+
+    const matches = DB
+      .map(f => ({ f, s: fuzzyScore(f.name, q) }))
+      .filter(x => x.s < Infinity)
+      .sort((a, b) => a.s - b.s)
+      .slice(0, 8)
+      .map(x => x.f);
+
+    dd.innerHTML = matches.length
+      ? matches.map((f, i) =>
+          `<div class="dd-item" data-idx="${i}" data-name="${f.name}">
+            ${f.name}<span class="dd-cal">${f.cal} kcal / 100g</span>
+          </div>`).join('')
+      : `<div class="dd-empty">Nenhum alimento encontrado</div>`;
+
+    dd.querySelectorAll('.dd-item').forEach(el => {
+      el.addEventListener('mousedown', e => e.preventDefault());
+      el.addEventListener('click', () => {
+        const food = DB.find(f => f.name === el.dataset.name);
+        inp.value = el.dataset.name;
+        dd.classList.remove('open');
+        if (food) selectPlanFood(inp, food);
+      });
+    });
+    hi = -1;
+    dd.classList.add('open');
+  });
+
+  inp.addEventListener('keydown', e => {
+    const items = dd.querySelectorAll('.dd-item');
+    if (e.key === 'ArrowDown') { hi = Math.min(hi + 1, items.length - 1); items.forEach((el, i) => el.classList.toggle('hi', i === hi)); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { hi = Math.max(hi - 1, 0); items.forEach((el, i) => el.classList.toggle('hi', i === hi)); e.preventDefault(); }
+    else if (e.key === 'Enter' && hi >= 0) { items[hi]?.click(); }
+    else if (e.key === 'Escape') { dd.classList.remove('open'); }
+  });
+
+  inp.addEventListener('blur', () => setTimeout(() => dd.classList.remove('open'), 150));
+}
+
+function selectPlanFood(inp, food) {
+  const item = inp.closest('.meal-item');
   const targetCal = parseFloat(item.dataset.targetCal);
-  const [mn, mx]  = LIMITES[catFood(food)] || [30, 200];
+  const [mn, mx] = LIMITES[catFood(food)] || [30, 200];
   let g = Math.round((targetCal / food.cal) * 100);
   g = Math.min(Math.max(g, mn), mx);
 
