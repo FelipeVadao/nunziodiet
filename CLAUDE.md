@@ -26,7 +26,7 @@ Array of ~223 objects `{ name, cal, prot, carb, fat, fib }` — all values per 1
 
 `norm(s)` — strips diacritics for accent-insensitive comparison.  
 `levenshtein(a, b)` — edit distance between two strings.  
-`fuzzyScore(foodName, query)` — returns 0 for exact substring match, 1–2 for typo tolerance (e.g. "Arros" → "Arroz"), `Infinity` for no match.  
+`fuzzyScore(foodName, query)` — single character: returns 0 if any word in the food name starts with that character, `Infinity` otherwise. Two+ characters: returns 0 for substring match, 1–2 for typo tolerance (e.g. "Arros" → "Arroz"), `Infinity` for no match.  
 `setupAC(inputId, dropdownId)` — wires an input to a dropdown, sorts results by `fuzzyScore`, returns `{ getFood() }`. Two instances: `acA` (current food) and `acB` (substitute).
 
 ### Food substitution (`calculate()`)
@@ -79,7 +79,7 @@ Each `PLANOS` entry has `templates: T_*` — an array of meal templates. `genera
 
 `LIMITES` — per-category `[min, max]` gram clamps applied at generation time. `gordura` (azeite) is `[10, 20]` and is never added to the `used` Set so it can repeat across meals.
 
-`fmtQty(name, g, cal)` — converts grams to human units for specific foods (ovos, claras, doses de whey, fatias de pão, unidades de fruta, colheres de azeite). Returns `"Xg (N unidades) · Y kcal"`.
+`fmtQty(name, g, cal)` — converts grams to human units for specific foods. Returns `"Xg (N unidades) · Y kcal"`. Covered foods: ovos (50g), claras (33g), whey (30g/dose), pão francês (50g/unidade), pão de hambúrguer (50g/unidade), pão integral/branco (25g/fatia), banana (80g), maçã/laranja (130g/unidade), morango (15g/unidade), azeite (12g/col. sopa).
 
 ### Editable meal plan items
 
