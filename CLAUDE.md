@@ -88,8 +88,10 @@ After generation, each food renders as a text input (`.meal-item-input`) inside 
 `setupPlanItemAC(inp, dd)` — wires fuzzy search + keyboard navigation to a plan item input. Called for each `.meal-item-input` after `box.innerHTML` is set, and again for inputs created by `addFood()`.
 
 **`selectPlanFood(inp, food)` — two modes:**
-- **Swap** (`data-actual-cal > 0`): computes `neededCal = dataset.targetTotal − sum(other items' data-actual-cal)`, sets `g = round(neededCal / food.cal * 100)`, forces `item.dataset.actualCal = neededCal` (exact, no rounding drift). `LIMITES` intentionally not applied. Guarantees the day total never changes when swapping.
+- **Swap** (`data-actual-cal > 0`): computes a calorie-equivalent portion clamped by `LIMITES` — `g = clamp(round(oldCal / food.cal * 100), mn, mx)` — then calls `redistributeDelta(oldCal - actualCal, item)` to distribute any caloric delta proportionally across all other DB-matched items. `updateTargetTotal()` is **not** called; `targetTotal` stays locked to the original plan goal.
 - **New item** (`data-actual-cal === 0`): uses `max(LIMITES.min, 100)` as default portion, sets `actualCal` from that, then calls `updateTargetTotal()` to absorb the new food into the locked total.
+
+`redistributeDelta(delta, excludeItem)` — distributes `delta` kcal proportionally (by current `actualCal` weight) across all `.meal-item` elements whose food name exists in `DB` and have `actualCal > 0`, excluding `excludeItem`. Last item absorbs rounding remainder to keep drift ≤ ±1 kcal/item. Does **not** call `updateTargetTotal` or `recalcTotals`.
 
 `recalcTotals()` — recomputes per-meal `.meal-kcal` chips, macro totals, and the day total from current `data-actual-*` attributes. Shows the live computed sum (not a locked value), so add/remove operations naturally update the display.
 
@@ -136,7 +138,7 @@ A **"＋ Adicionar refeição"** button (`.btn-add-meal`, violet) sits between t
 - `--green` affects header, main button, focus rings, and result highlights — changes ripple everywhere.
 - New modals follow the pattern: `modal-bg.hidden` → `modal` → result div toggled with `.hidden`. Field ID prefixes: `w-` water, `h-` Harris-Benedict, `p-` meal planner.
 - Presunto, sardinha, atum are **breakfast/snack proteins** — never include them in `T_ALMOCO` or `T_JANTAR` templates.
-- When **swapping** a meal plan food, `LIMITES` are not applied — the calorie balance constraint takes priority.
+- When **swapping** a meal plan food, `LIMITES` **are applied** to keep portions practical (e.g., no 1 kg of zucchini). The caloric delta is redistributed to other items via `redistributeDelta()` so the day total stays close to the original target.
 - When **adding** a new food, `LIMITES.min` (or 100 g, whichever is larger) is used as the default portion, and `updateTargetTotal()` must be called afterwards.
 - After any add/remove of a meal or food, always call `updateTargetTotal()` then `recalcTotals()`.
 - GitHub credentials are stored in the Windows Credential Manager — `git push` works without any token in the URL.

@@ -1955,24 +1955,21 @@ function setupPlanItemAC(inp, dd) {
 }
 
 function selectPlanFood(inp, food) {
-  const item    = inp.closest('.meal-item');
-  const isNew   = parseInt(item.dataset.actualCal || 0) === 0;
-  const planBox = document.getElementById('planResult');
+  const item   = inp.closest('.meal-item');
+  const isNew  = parseInt(item.dataset.actualCal || 0) === 0;
+  const oldCal = parseInt(item.dataset.actualCal || 0);
   let g, actualCal;
 
+  const [mn, mx] = LIMITES[catFood(food)] || [30, 200];
+
   if (isNew) {
-    const [mn] = LIMITES[catFood(food)] || [30, 200];
+    // Novo alimento: porção padrão via LIMITES
     g = Math.max(mn, 100);
     actualCal = Math.round(food.cal * g / 100);
   } else {
-    const dayTarget = parseInt(planBox.dataset.targetTotal || 0);
-    let othersTotal = 0;
-    planBox.querySelectorAll('.meal-item').forEach(el => {
-      if (el !== item) othersTotal += parseInt(el.dataset.actualCal || 0);
-    });
-    const neededCal = Math.max(1, dayTarget - othersTotal);
-    g = Math.max(1, Math.round(neededCal / food.cal * 100));
-    actualCal = neededCal;
+    // Troca: porção calórico-equivalente clampeada nos LIMITES (evita porções absurdas)
+    g = Math.min(Math.max(Math.round(oldCal / food.cal * 100), mn), mx);
+    actualCal = Math.round(food.cal * g / 100);
   }
 
   const fac = g / 100;
@@ -1982,8 +1979,54 @@ function selectPlanFood(inp, food) {
   item.dataset.actualFat  = (food.fat  * fac).toFixed(1);
   item.querySelector('.meal-item-qty').textContent = fmtQty(food.name, g, actualCal);
 
-  if (isNew) updateTargetTotal();
+  if (isNew) {
+    updateTargetTotal();
+  } else {
+    // Redistribui diferença calórica proporcionalmente entre os outros alimentos
+    const delta = oldCal - actualCal;
+    if (delta !== 0) redistributeDelta(delta, item);
+  }
   recalcTotals();
+}
+
+// Distribui `delta` kcal proporcionalmente entre todos os itens do plano (exceto excludeItem).
+// delta > 0 → outros recebem mais calorias (slot atual ficou com menos)
+// delta < 0 → outros perdem calorias (slot atual ficou com mais)
+function redistributeDelta(delta, excludeItem) {
+  if (!delta) return;
+
+  // Apenas itens com alimento reconhecido no DB e calorias > 0
+  const others = [...document.querySelectorAll('#planResult .meal-item')].filter(el => {
+    if (el === excludeItem) return false;
+    if (parseInt(el.dataset.actualCal || 0) <= 0) return false;
+    const name = el.querySelector('.meal-item-input')?.value;
+    return !!DB.find(f => f.name === name);
+  });
+  if (!others.length) return;
+
+  const othersTotal = others.reduce((s, el) => s + parseInt(el.dataset.actualCal), 0);
+  if (!othersTotal) return;
+
+  let remaining = delta;
+  others.forEach((el, i) => {
+    const oldCal = parseInt(el.dataset.actualCal);
+    // Último item absorve o resto para zerar drift de arredondamento
+    const adj  = (i === others.length - 1)
+      ? remaining
+      : Math.round(delta * (oldCal / othersTotal));
+    remaining -= adj;
+
+    const newCal = Math.max(1, oldCal + adj);
+    const food   = DB.find(f => f.name === el.querySelector('.meal-item-input').value);
+    const newG   = Math.max(1, Math.round(newCal / food.cal * 100));
+    const fac    = newG / 100;
+    const realCal = Math.round(food.cal * fac);
+    el.dataset.actualCal  = realCal;
+    el.dataset.actualProt = (food.prot * fac).toFixed(1);
+    el.dataset.actualCarb = (food.carb * fac).toFixed(1);
+    el.dataset.actualFat  = (food.fat  * fac).toFixed(1);
+    el.querySelector('.meal-item-qty').textContent = fmtQty(food.name, newG, realCal);
+  });
 }
 
 function recalcTotals() {
