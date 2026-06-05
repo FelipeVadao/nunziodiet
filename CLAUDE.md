@@ -12,11 +12,50 @@ Everything lives in `index.html`: `<style>` → `<body>` (HTML) → `<script>` (
 
 ### CSS
 
-CSS custom properties in `:root` drive the entire palette. Core tokens: `--green: #62C823`, `--charcoal: #2B2B2B`. Dark mode is toggled via `data-theme="dark"` on `<html>` — all overrides live under `[data-theme="dark"]` selectors at the end of `<style>`. The mobile breakpoint is `@media (max-width: 520px)` and uses a bottom-sheet modal pattern (`align-items: flex-end`, rounded top corners).
+CSS custom properties in `:root` drive the entire palette and layout system:
+- Core color tokens: `--green: #62C823`, `--charcoal: #2B2B2B`
+- Layout tokens: `--radius-card: 22px`, `--radius-btn: 14px`
+- Shadow token: `--card-shadow`
 
-**Dark mode aesthetic:** pure black header (`#000`) with `#62C823` bottom border and glow; logo "NUNZIO" in green with `text-shadow` radial glow, "DIET" in white; body `#090909`; cards `#111` with green-tinted borders. Dark mode root vars override `--green-bg`, `--border`, `--card-shadow` to near-black values.
+Dark mode is toggled via `data-theme="dark"` on `<html>`. **Dark mode is the default** — the IIFE at the bottom of `<script>` reads `localStorage.getItem('nd-theme') || 'dark'`. All dark overrides live under `[data-theme="dark"]` selectors, grouped at the end of `<style>`.
 
-**Light mode header:** `linear-gradient(160deg, #72d426, --green-dark)`.
+**Dark mode aesthetic (deep purple theme):**
+- Body: `#0b0718` + radial gradient `rgba(109,40,217,0.18)` at top
+- Header: `linear-gradient(160deg, #1e0d38, #110820)` with `rgba(139,92,246,0.3)` bottom border
+- Cards (`.card`, `.macro-card`): `#170f2e`, border `rgba(139,92,246,0.14)`
+- Meal cards: `#120a24`, modals: `#170f2e`
+- Border accent throughout: `rgba(139,92,246,0.08–0.25)` (purple, not green)
+- Green `#62C823` is the single hero — only the main CTA gets the green glow
+
+**Light mode header:** `linear-gradient(160deg, #7bd92a, #3d9014, #2e6d0f)`.
+
+Mobile breakpoint is `@media (max-width: 520px)` with bottom-sheet modal pattern.
+
+### Typography
+
+The main CTA button uses **Orbitron** (Google Fonts, loaded via `<link>` in `<head>`), `font-size: 0.85rem`, `letter-spacing: 2px`. All other elements use the system font stack.
+
+### Button structure
+
+The three secondary action buttons (água, IMC, plano) share class `.action-btn` and contain:
+- `.action-icon` — 40×40px rounded square with `rgba(255,255,255,0.14)` bg, holds an inline SVG
+- `.action-text` — flex column with `.action-label` (bold, sentence case) and `.action-sub` (0.7rem, 58% opacity; hidden on mobile)
+- `.action-chevron` — SVG that translates 3px right on hover
+
+No emoji in buttons anywhere.
+
+### Button colors
+
+| Button | Light | Dark |
+|--------|-------|------|
+| Calcular substituição | `--green` + charcoal text, Orbitron font | same |
+| Ingestão de Água | `#1a3a5c` (navy) | `#2563eb` (blue-500) |
+| Gasto Calórico | `#5b21b6` (violet) | `#7c3aed` (violet-500) |
+| Plano de Refeições | `#0f766e` (teal) | `#0d9488` (teal-500) |
+| ＋ Adicionar refeição | `#5b21b6` (violet) | `#4c1d95` (violet-900) |
+| ＋ Alimento | dashed `--green` border | same, translucent |
+
+Secondary buttons use solid colors only — no gradients. Glow only appears on hover.
 
 ### Food database (`const DB`)
 
@@ -24,49 +63,43 @@ Array of ~223 objects `{ name, cal, prot, carb, fat, fib }` — all values per 1
 
 ### Autocomplete + fuzzy search
 
-`norm(s)` — strips diacritics for accent-insensitive comparison.  
-`levenshtein(a, b)` — edit distance between two strings.  
-`fuzzyScore(foodName, query)` — single character: returns 0 if any word in the food name starts with that character, `Infinity` otherwise. Two+ characters: returns 0 for substring match, 1–2 for typo tolerance (e.g. "Arros" → "Arroz"), `Infinity` for no match.  
-`setupAC(inputId, dropdownId)` — wires an input to a dropdown, sorts results by `fuzzyScore`, returns `{ getFood() }`. Two instances: `acA` (current food) and `acB` (substitute).
+`norm(s)` — strips diacritics.  
+`levenshtein(a, b)` — edit distance.  
+`fuzzyScore(foodName, query)` — single character: returns 0 if any word starts with it, `Infinity` otherwise. Two+ characters: 0 for substring match, 1–2 for typo tolerance, `Infinity` for no match.  
+`setupAC(inputId, dropdownId)` — wires an input to a dropdown. Two instances: `acA` (current food) and `acB` (substitute).
 
 ### Food substitution (`calculate()`)
 
-Core formula: `qB = (qA / 100 * fA.cal) / fB.cal * 100`. Macros scaled linearly from per-100g values. Results rendered into `#results`.
+Core formula: `qB = (qA / 100 * fA.cal) / fB.cal * 100`. Macros scaled linearly. Results rendered into `#results`.
 
 ### Water calculator (`calcWater()`)
 
-Modal opened by `openWater()`. WHO age-bracket factors (ml/kg): 18–30 → 40, 31–55 → 35, 56–65 → 30, 65+ → 25.
+Modal opened by `openWater()`. Result renders into `.water-result` — a dark card with fixed `background: #1c1c1c` (not `var(--charcoal)`, which inverts in dark mode). WHO age-bracket factors (ml/kg): 18–30 → 40, 31–55 → 35, 56–65 → 30, 65+ → 25.
 
 ### Harris-Benedict calculator (`calcHB()`)
 
-Modal opened by `openHB()`. Fields: `h-sexo`, `h-ativ` (activity factor 1.2–1.9), `h-peso`, `h-altura`, `h-idade`. Computes TMB and GET. Renders 3 clickable goal cards — each calls `usarNoPlano(kcal, objetivo)`, which closes the HB modal, pre-fills `p-cal`/`p-objetivo` in the meal planner, and opens it.
+Modal opened by `openHB()`. Fields: `h-sexo`, `h-ativ` (activity factor 1.2–1.9), `h-peso`, `h-altura`, `h-idade`. Computes TMB and GET. Renders 3 clickable goal cards — each calls `usarNoPlano(kcal, objetivo)`, which pre-fills `p-cal`/`p-objetivo` in the meal planner and opens it.
 
 ### Meal planner (`generatePlan()`)
 
 Modal opened by `openPlan()`. Inputs: `p-objetivo` (emagrecer / manter / massa), `p-cal`, dietary restriction checkboxes (`r-veg`, `r-gluten`, `r-lactose`).
 
 **Data layer:**  
-`PLAN_NAMES` — Set of ~57 practical Brazilian supermarket foods that form `PLAN_DB = DB.filter(f => PLAN_NAMES.has(f.name))`.  
-`getPlanDb()` — returns `PLAN_DB` filtered by the current restriction checkboxes.
+`PLAN_NAMES` — Set of ~57 practical Brazilian supermarket foods → `PLAN_DB = DB.filter(f => PLAN_NAMES.has(f.name))`.  
+`getPlanDb()` — returns `PLAN_DB` filtered by active restriction checkboxes.
 
-**Categorisation (`catFood(f)`):** assigns each food to one of: `proteina_cafe`, `proteina_refeicao`, `graos_cafe`, `graos_refeicao`, `leguminosa`, `gordura`, `fruta`, `verdura`, `laticinios` via regex.
+**Categorisation (`catFood(f)`):** `proteina_cafe`, `proteina_refeicao`, `graos_cafe`, `graos_refeicao`, `leguminosa`, `gordura`, `fruta`, `verdura`, `laticinios` via regex.
 
-**Protein context constants** (defined before templates, used inside templates to enforce correct meal context):
-- `P_FRANGO`, `P_BOVINA`, `P_PEIXE`, `P_SUINO` — hot-meal proteins only (grilled/roasted meats/fish)
-- `P_OVO`, `P_FRIOS` — breakfast/snack proteins (eggs, atum, presunto, sardinha)
+**Protein context constants:**
+- `P_FRANGO`, `P_BOVINA`, `P_PEIXE`, `P_SUINO` — hot-meal proteins only
+- `P_OVO`, `P_FRIOS` — breakfast/snack proteins (ovos, atum, presunto, sardinha)
 - `L_FEIJAO`, `L_GRAO`, `L_TODAS` — legume pools
 - `C_ARROZ`, `C_BATATA`, `C_RAIZ` — carb pools
 
 **Template system:**  
-Each `PLANOS` entry has `templates: T_*` — an array of meal templates. `generatePlan` picks one template at random per meal. A template is an array of *pools*. A pool is:
-- A string → category name (e.g. `'verdura'`) — picks any food in that category
-- `string[]` where all elements are category names → picks from combined categories
-- `string[]` where elements are food names → picks from that explicit food list
+`PLANOS` entries have `templates: T_*`. `generatePlan` picks one template at random per meal. A pool is either a category name string, a `string[]` of category names, or a `string[]` of food names. `pickFood(pool, used, db)` distinguishes via `CAT_NAMES`.
 
-`pickFood(pool, used, db)` distinguishes the three cases via `CAT_NAMES` (a Set of all category name strings).
-
-**Template constants** (all defined before `PLANOS`):
-`T_CAFE`, `T_LANCHE`, `T_LANCHE_MASSA`, `T_ALMOCO`, `T_JANTAR_EMAGR`, `T_JANTAR`.
+**Template constants:** `T_CAFE`, `T_LANCHE`, `T_LANCHE_MASSA`, `T_ALMOCO`, `T_JANTAR_EMAGR`, `T_JANTAR`.
 
 **Meal structure — 4 meals per objective:**
 
@@ -77,68 +110,68 @@ Each `PLANOS` entry has `templates: T_*` — an array of meal templates. `genera
 | 🥗 Lanche da tarde | 15% T_LANCHE | 15% T_LANCHE | 15% T_LANCHE_MASSA |
 | 🌙 Jantar | 25% T_JANTAR_EMAGR | 25% T_JANTAR | 25% T_JANTAR |
 
-`LIMITES` — per-category `[min, max]` gram clamps applied at generation time. `gordura` (azeite) is `[10, 20]` and is never added to the `used` Set so it can repeat across meals.
+`LIMITES` — per-category `[min, max]` gram clamps. `gordura` (azeite) is `[10, 20]` and never added to `used` so it can repeat across meals.
 
-`fmtQty(name, g, cal)` — converts grams to human units for specific foods. Returns `"Xg (N unidades) · Y kcal"`. Covered foods: ovos (50g), claras (33g), whey (30g/dose), pão francês (50g/unidade), pão de hambúrguer (50g/unidade), pão integral/branco (25g/fatia), banana (80g), maçã/laranja (130g/unidade), morango (15g/unidade), azeite (12g/col. sopa).
+`fmtQty(name, g, cal)` — converts grams to human units. Covered: ovos (50g), claras (33g), whey (30g/dose), pão francês/hambúrguer (50g/unidade), pão integral/branco (25g/fatia), banana (80g), maçã/laranja (130g/unidade), morango (15g/unidade), azeite (12g/col. sopa).
 
 ### Editable meal plan items
 
-After generation, each food renders as a text input (`.meal-item-input`) inside `.meal-item-ac` (positioned wrapper hosting autocomplete dropdown `.meal-item-dd`). The full `DB` is searchable — not just `PLAN_DB`.
+Each food renders as `.meal-item-input` inside `.meal-item-ac`. Each `.meal-item` carries `data-actual-cal`, `data-actual-prot`, `data-actual-carb`, `data-actual-fat`, and `data-food-name` (the current food name, used to look up the previous food on swap).
 
-`setupPlanItemAC(inp, dd)` — wires fuzzy search + keyboard navigation to a plan item input. Called for each `.meal-item-input` after `box.innerHTML` is set, and again for inputs created by `addFood()`.
+`setupPlanItemAC(inp, dd)` — wires fuzzy search + keyboard nav. Called after `generatePlan()` and after `addFood()`.
 
 **`selectPlanFood(inp, food)` — two modes:**
-- **Swap** (`data-actual-cal > 0`): computes a calorie-equivalent portion clamped by `LIMITES` — `g = clamp(round(oldCal / food.cal * 100), mn, mx)` — then calls `redistributeDelta(oldCal - actualCal, item)` to distribute any caloric delta proportionally across all other DB-matched items. `updateTargetTotal()` is **not** called; `targetTotal` stays locked to the original plan goal.
-- **New item** (`data-actual-cal === 0`): uses `max(LIMITES.min, 100)` as default portion, sets `actualCal` from that, then calls `updateTargetTotal()` to absorb the new food into the locked total.
+- **Swap** (`data-actual-cal > 0`): reads `item.dataset.foodName` to look up old food, computes calorie-equivalent portion clamped by `LIMITES`, calls `showSwapTip()`, then `redistributeDelta(oldCal - actualCal, item)`. `updateTargetTotal()` is **not** called.
+- **New item** (`data-actual-cal === 0`): uses `max(LIMITES.min, 100)` as default, then calls `updateTargetTotal()`.
 
-`redistributeDelta(delta, excludeItem)` — distributes `delta` kcal proportionally (by current `actualCal` weight) across all `.meal-item` elements whose food name exists in `DB` and have `actualCal > 0`, excluding `excludeItem`. Last item absorbs rounding remainder to keep drift ≤ ±1 kcal/item. Does **not** call `updateTargetTotal` or `recalcTotals`.
+In both modes, `item.dataset.foodName` is updated to the new food name after selection.
 
-`recalcTotals()` — recomputes per-meal `.meal-kcal` chips, macro totals, and the day total from current `data-actual-*` attributes. Shows the live computed sum (not a locked value), so add/remove operations naturally update the display.
+`redistributeDelta(delta, excludeItem)` — distributes `delta` kcal proportionally across all DB-matched items with `actualCal > 0`. Last item absorbs rounding remainder (≤ ±1 kcal/item).
 
-`updateTargetTotal()` — sums all `.meal-item[data-actual-cal]` in `#planResult` and writes the result back to `planResult.dataset.targetTotal`. Call this after any add/remove so subsequent swaps lock to the new total.
+`recalcTotals()` — recomputes per-meal `.meal-kcal` chips, macro totals, and day total from `data-actual-*` attributes.
+
+`updateTargetTotal()` — sums all `data-actual-cal` in `#planResult` and writes to `planResult.dataset.targetTotal`. Call after any add/remove.
+
+### Nutritional analysis (`analyzePlan()`)
+
+Button `#btnAnalyzePlan` appears after `generatePlan()`. Reads all `.meal-item` data attributes, looks up fiber (`fib`) per food in `DB`, then evaluates:
+- Protein % of calories vs. target range by objective
+- Total fiber vs. 25g/day goal
+- Fat % of calories (warn if >40% or <15%)
+- Total kcal vs. plan target
+
+Results render into `#analysisPanel` as `.tip-item.tip-good/warn/info` cards.
+
+### Contextual swap tip (`showSwapTip()`)
+
+Called from `selectPlanFood()` on swaps. Computes protein and fiber deltas between old and new food portions. If either delta ≥ threshold, inserts a `.swap-tip` element after the `.meal-item` that auto-removes after 3.5 s via `setTimeout`.
 
 ### Add / remove meals and foods
 
-Each generated meal card has:
-- **"Excluir refeição"** button (`.btn-rm-meal`) — red pill in the meal title; calls `removeMeal(btn)`
-- **"＋ Alimento"** button (`.btn-add-food`) — green dashed, at the bottom of the card; calls `addFood(btn)`
-- Each food item has a **red × button** (`.btn-rm-food`); calls `removeFood(btn)`
-
-A **"＋ Adicionar refeição"** button (`.btn-add-meal`, violet) sits between the meal cards and the total bar; calls `addMeal()`.
-
-`addMeal()` — inserts a new `.meal-card` with an editable `.meal-name-input` and no foods; user types the name and adds foods via `addFood`.  
-`removeMeal(btn)` / `removeFood(btn)` — remove the element, then call `updateTargetTotal()` + `recalcTotals()`.  
-`addFood(btn)` — creates a blank `.meal-item` (`actualCal = 0`), wires `setupPlanItemAC`, focuses the input.
+`addMeal()` — inserts `.meal-card` with editable `.meal-name-input`.  
+`removeMeal(btn)` / `removeFood(btn)` — remove element, then `updateTargetTotal()` + `recalcTotals()`.  
+`addFood(btn)` — creates blank `.meal-item` (`actualCal = 0`), wires `setupPlanItemAC`, focuses input.
 
 ### PDF export
 
-`printPlan()` — syncs `.meal-item-input` `.value` → `value` attribute (so edited names survive innerHTML clone), copies `#planResult` into the hidden `#printArea` div with a header (`#printMeta`), then calls `window.print()`. Print styles strip interactivity from inputs and hide dropdowns. No external libraries.
+`printPlan()` — syncs `.meal-item-input` value → attribute, clones `#planResult` into `#printArea`, calls `window.print()`. Print styles strip interactivity and hide dropdowns.
 
-`#btnPdf` and `#btnClosePlan` are hidden until `generatePlan()` succeeds. Similarly `#btnCloseHB` and `#btnCloseWater` appear only after their respective calculations.
+`#btnPdf`, `#btnAnalyzePlan`, and `#btnClosePlan` are hidden until `generatePlan()` succeeds.
 
 ### Dark / light mode
 
-`toggleTheme()` — flips `data-theme` on `<html>`, saves to `localStorage` under key `nd-theme`. On page load an IIFE reads `localStorage` or falls back to `prefers-color-scheme`. Toggle button `#themeToggle` is positioned `absolute` inside the `<header>`.
-
-## Button colors
-
-| Button | Light | Dark |
-|--------|-------|------|
-| Calcular substituição | `--green` + charcoal text | same |
-| Calcular água | `#1a3a5c` (navy) | `#2563eb` (blue-500) |
-| Calcular gasto calórico | `#5b21b6` (violet) | `#7c3aed` (violet-500) |
-| Sugerir refeições | `#0f766e` (teal) | `#0d9488` (teal-500) |
-| ＋ Adicionar refeição | `#5b21b6` (violet) | `#4c1d95` (violet-900) |
-| ＋ Alimento | dashed `--green` border | same, translucent |
+`toggleTheme()` — flips `data-theme` on `<html>`, saves to `localStorage` key `nd-theme`. IIFE at bottom of `<script>` defaults to `'dark'` if no saved preference.
 
 ## Key conventions
 
 - All DB nutritional values are **per 100 g** — never store per-serving values.
 - Calorie-equivalence formula must stay symmetrical: `qA * cal_A = qB * cal_B`.
-- `--green` affects header, main button, focus rings, and result highlights — changes ripple everywhere.
+- `--green` is the single hero accent — only the main CTA button and the logo carry green glow. Do not add green glow to other elements.
+- Dark mode borders use `rgba(139,92,246,…)` (purple) not green.
 - New modals follow the pattern: `modal-bg.hidden` → `modal` → result div toggled with `.hidden`. Field ID prefixes: `w-` water, `h-` Harris-Benedict, `p-` meal planner.
-- Presunto, sardinha, atum are **breakfast/snack proteins** — never include them in `T_ALMOCO` or `T_JANTAR` templates.
-- When **swapping** a meal plan food, `LIMITES` **are applied** to keep portions practical (e.g., no 1 kg of zucchini). The caloric delta is redistributed to other items via `redistributeDelta()` so the day total stays close to the original target.
-- When **adding** a new food, `LIMITES.min` (or 100 g, whichever is larger) is used as the default portion, and `updateTargetTotal()` must be called afterwards.
+- Result containers that are dark cards (e.g. `.water-result`, `.res-card`) must use **fixed hex backgrounds**, not `var(--charcoal)` — that variable inverts between light and dark modes.
+- Presunto, sardinha, atum are **breakfast/snack proteins** — never add to `T_ALMOCO` or `T_JANTAR` templates.
+- When **swapping** a meal plan food, `LIMITES` are applied and `redistributeDelta()` is called. `updateTargetTotal()` is NOT called on swap.
+- When **adding** a new food, `updateTargetTotal()` MUST be called afterwards.
 - After any add/remove of a meal or food, always call `updateTargetTotal()` then `recalcTotals()`.
-- GitHub credentials are stored in the Windows Credential Manager — `git push` works without any token in the URL.
+- GitHub credentials are stored in Windows Credential Manager — `git push` works without a token in the URL.

@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NunzioDiet — Substituição de Alimentos</title>
+  <style>
+    @font-face {
+      font-family: 'Orbitron';
+      font-style: normal;
+      font-weight: 700 900;
+      font-display: swap;
+      src: url('fonts/Orbitron.woff2') format('woff2');
+    }
+  </style>
+  <script src="jspdf.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --green: #62C823;
+      --green-dark: #4DA819;
+      --green-xdark: #3C8513;
+      --green-light: #C8F09A;
+      --green-bg: #F0F4EC;
+      --charcoal: #2B2B2B;
+      --purple: #7c3aed;
+      --purple-light: #ddd6fe;
+      --border: #D4EFC0;
+      --text: #2B2B2B;
+      --text-muted: #6b7280;
+      --card-shadow: 0 8px 32px rgba(98,200,35,0.14), 0 2px 8px rgba(0,0,0,0.06);
+      --radius-card: 22px;
+      --radius-btn: 14px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--green-bg);
+      color: var(--charcoal);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(160deg, #7bd92a 0%, #3d9014 60%, #2e6d0f 100%);
+      padding: 36px 24px 32px;
+      text-align: center;
+      color: var(--charcoal);
+      position: relative;
+    }
+    .header-inner { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 10px; }
+    .logo { font-size: 3rem; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+    .logo em { font-style: normal; color: var(--charcoal); }
+    .logo span { font-style: normal; color: white; }
+    .tagline { font-size: 0.95rem; color: var(--charcoal); opacity: .75; font-weight: 500; letter-spacing: .5px; }
+
+    /* ── Layout ── */
+    .container { max-width: 840px; margin: 0 auto; padding: 36px 16px 60px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 580px) {
+      .grid-2 { grid-template-columns: 1fr; gap: 6px; }
+      .arrow-col { transform: rotate(90deg); padding: 0; min-height: unset; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: white;
+      border-radius: var(--radius-card);
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      border: 1.5px solid var(--border);
+    }
+
+    .chip {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 18px;
+    }
+    .chip-a { background: #e0f8c8; color: var(--green-xdark); }
+    .chip-b { background: var(--purple-light); color: var(--purple); }
+
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+
+    .ac-wrap { position: relative; }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      color: #111827;
+      background: #fafafa;
+    }
+    input:focus { border-color: var(--green); box-shadow: 0 0 0 4px rgba(98,200,35,.2), 0 2px 8px rgba(98,200,35,.1); background: white; }
+    input.error { border-color: #ef4444; }
+
+    .dropdown {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0; right: 0;
+      background: white;
+      border: 1.5px solid var(--green-light);
+      border-radius: 16px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      display: none;
+    }
+    .dropdown.open { display: block; }
+    .dd-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      border-bottom: 1px solid #f3f4f6;
+      transition: background .12s;
+    }
+    .dd-item:last-child { border-bottom: none; }
+    .dd-item:hover, .dd-item.hi { background: #f2fde8; }
+    .dd-item .dd-cal { font-size: 0.75rem; color: var(--text-muted); }
+    .dd-empty { padding: 12px 14px; font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Arrow divider */
+    .arrow-col {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 56px;
+      font-size: 1.6rem;
+      color: var(--charcoal);
+      opacity: .45;
+    }
+
+    /* ── Button ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--green);
+      color: var(--charcoal);
+      border: none;
+      border-radius: var(--radius-btn);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: transform .15s, box-shadow .15s, background .15s;
+      box-shadow: 0 4px 20px rgba(98,200,35,0.35);
+    }
+    .btn:hover { transform: translateY(-1px); background: var(--green-dark); box-shadow: 0 8px 28px rgba(98,200,35,.5); }
+    .btn:active { transform: none; box-shadow: 0 2px 10px rgba(98,200,35,.3); }
+
+    /* ── Results ── */
+    #results { margin-top: 28px; }
+
+    .res-card {
+      background: #1c1c1c;
+      border-radius: var(--radius-card);
+      padding: 28px;
+      color: white;
+      margin-bottom: 16px;
+      animation: up .35s ease;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .res-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; opacity: .65; margin-bottom: 16px; }
+    .res-line { font-size: 1rem; line-height: 1.7; }
+    .res-big { font-size: 2.2rem; font-weight: 900; color: var(--green); line-height: 1.1; margin: 8px 0; text-shadow: 0 0 20px rgba(98,200,35,.6), 0 0 40px rgba(98,200,35,.3); }
+    .res-kcal { font-size: 0.82rem; opacity: .75; margin-top: 10px; }
+
+    /* ── Macro card ── */
+    .macro-card {
+      background: white;
+      border-radius: var(--radius-card);
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      border: 1.5px solid var(--border);
+      margin-bottom: 16px;
+      animation: up .35s ease .08s both;
+    }
+    .macro-heading {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+    .legend { display: flex; gap: 20px; margin-bottom: 20px; }
+    .leg { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; font-weight: 600; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-a { background: var(--green); }
+
+    .dot-b { background: var(--purple); }
+
+    .m-row { margin-bottom: 18px; }
+    .m-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .m-name { font-size: 0.85rem; font-weight: 600; }
+    .m-vals { font-size: 0.8rem; color: var(--text-muted); }
+    .m-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .bar-bg { background: #f3f4f6; border-radius: 99px; height: 9px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+    .fill-a { background: var(--green); }
+
+    .fill-b { background: var(--purple); }
+
+    /* ── Note ── */
+    .note {
+      background: #fffbeb;
+      border: 1.5px solid #fcd34d;
+      border-radius: 14px;
+      padding: 16px 18px;
+      font-size: 0.85rem;
+      color: #92400e;
+      line-height: 1.6;
+      animation: up .35s ease .16s both;
+    }
+    .note strong { display: block; margin-bottom: 4px; color: #78350f; }
+
+    .hidden { display: none !important; }
+    @keyframes up { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
+    @keyframes fadeout { to { opacity: 0; } }
+
+    /* ── Botão água ── */
+    .btn-water {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      background: #1a3a5c;
+      color: white;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .4px;
+      transition: transform .15s, background .15s, box-shadow .15s;
+    }
+    .btn-water:hover { transform: translateY(-1px); background: #1e4470; box-shadow: 0 6px 20px rgba(26,58,92,.4); }
+    .btn-water:active { transform: none; }
+
+
+    /* ── Botão IMC ── */
+    .btn-imc {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      background: #5b21b6;
+      color: white;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .4px;
+      transition: transform .15s, background .15s, box-shadow .15s;
+    }
+    .btn-imc:hover { transform: translateY(-1px); background: #6d28d9; box-shadow: 0 6px 20px rgba(91,33,182,.4); }
+    .btn-imc:active { transform: none; }
+
+    /* ── Botão Plano ── */
+    .btn-plan {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .4px;
+      transition: transform .15s, background .15s, box-shadow .15s;
+    }
+    .btn-plan:hover { transform: translateY(-1px); background: #0e8a81; box-shadow: 0 6px 20px rgba(15,118,110,.4); }
+    .btn-plan:active { transform: none; }
+
+    /* ── Estrutura interna dos botões de ação ── */
+    .action-btn {
+      text-align: left !important;
+      justify-content: flex-start !important;
+      gap: 14px !important;
+      padding: 15px 20px !important;
+    }
+    .action-icon {
+      width: 40px; height: 40px; flex-shrink: 0;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.14);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .action-text {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .action-label {
+      font-size: 0.88rem; font-weight: 700;
+      letter-spacing: .1px; line-height: 1.25;
+      text-transform: none;
+    }
+    .action-sub {
+      font-size: 0.7rem; font-weight: 500;
+      opacity: 0.58; line-height: 1.3; letter-spacing: 0;
+    }
+    .action-chevron {
+      flex-shrink: 0; opacity: 0.4;
+      transition: transform .15s, opacity .15s;
+    }
+    .btn-water:hover .action-chevron,
+    .btn-imc:hover .action-chevron,
+    .btn-plan:hover .action-chevron { opacity: 0.8; transform: translateX(3px); }
+
+    /* ── Modal plano (mais largo) ── */
+    .modal-wide { max-width: 540px; }
+    .plan-select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: #fafafa;
+      color: #111827;
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .plan-select:focus { border-color: #0f766e; }
+    .plan-result { margin-top: 20px; max-height: 52vh; overflow-y: auto; padding-right: 2px; }
+    .meal-card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .meal-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #0f766e;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .meal-kcal {
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: #ccfbf1;
+      color: #0f766e;
+      padding: 2px 9px;
+      border-radius: 999px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .meal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.83rem;
+    }
+    .meal-item:last-child { border-bottom: none; }
+    .meal-item-name { color: #1e293b; }
+    .meal-item-qty { font-weight: 700; color: #0f766e; white-space: nowrap; margin-left: 8px; }
+    .meal-item-ac { position: relative; flex: 1; min-width: 0; }
+    .meal-item-input {
+      border: none;
+      border-bottom: 1.5px solid #e2e8f0;
+      background: transparent;
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: #1e293b;
+      width: 100%;
+      padding: 2px 0 3px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .meal-item-input:focus { border-bottom-color: var(--green); }
+    .meal-item-dd { top: 100%; left: 0; right: 0; }
+    /* ── Add / Remove controles ── */
+    .btn-rm-food {
+      flex-shrink: 0;
+      border: none; background: none;
+      color: #ef4444; font-size: 1.1rem; font-weight: 700;
+      cursor: pointer; padding: 0 4px; margin-left: 4px;
+      line-height: 1; transition: color .15s;
+    }
+    .btn-rm-food:hover { color: #b91c1c; }
+    .btn-rm-meal {
+      flex-shrink: 0;
+      border: 1.5px solid #fca5a5; background: #fff0f0;
+      color: #dc2626; font-size: 0.7rem; font-weight: 800;
+      cursor: pointer; padding: 3px 10px; margin-left: 8px;
+      border-radius: 6px; line-height: 1.6; letter-spacing: .3px;
+      transition: background .15s, color .15s, border-color .15s; white-space: nowrap;
+    }
+    .btn-rm-meal:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+    .btn-add-food {
+      display: block; width: 100%; margin-top: 8px; padding: 7px;
+      background: transparent; border: 1.5px dashed rgba(98,200,35,0.5);
+      border-radius: 8px; color: var(--green-xdark);
+      font-size: 0.76rem; font-weight: 700; cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .btn-add-food:hover { background: var(--green); color: #fff; border-style: solid; }
+    .btn-add-meal {
+      display: block; width: 100%; margin: 12px 0; padding: 13px;
+      background: #5b21b6; border: none;
+      border-radius: var(--radius-btn); color: #fff;
+      font-size: 0.88rem; font-weight: 800; cursor: pointer;
+      letter-spacing: .4px;
+      transition: background .15s, box-shadow .15s, transform .1s;
+    }
+    .btn-add-meal:hover { background: #6d28d9; box-shadow: 0 6px 20px rgba(91,33,182,0.45); transform: translateY(-1px); }
+    .btn-add-meal:active { transform: translateY(0); }
+    .meal-name-input {
+      border: none; border-bottom: 1px dashed #4b5563;
+      background: transparent; font-size: 0.78rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .8px;
+      color: #0f766e; outline: none; flex: 1; padding: 0; min-width: 0;
+    }
+    [data-theme="dark"] .btn-rm-food { color: #f87171; }
+    [data-theme="dark"] .btn-rm-food:hover { color: #fca5a5; }
+    [data-theme="dark"] .btn-rm-meal { background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.3); color: #f87171; }
+    [data-theme="dark"] .btn-rm-meal:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+    [data-theme="dark"] .btn-add-food { color: #86efac; border-color: rgba(98,200,35,0.25); }
+    [data-theme="dark"] .btn-add-food:hover { color: #000; }
+    .plan-total {
+      background: #0f766e;
+      color: white;
+      border-radius: 16px;
+      padding: 14px 16px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+    .plan-macros {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      opacity: .85;
+      font-weight: 600;
+    }
+
+    /* ── Resultado Harris-Benedict ── */
+    .hb-result { margin-top: 18px; animation: up .3s ease; }
+    .hb-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .hb-stat {
+      background: #f5f3ff;
+      border: 1.5px solid #ddd6fe;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .hb-stat-label { font-size: 0.68rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+    .hb-stat-val   { font-size: 1.45rem; font-weight: 900; color: #4c1d95; line-height: 1.1; }
+    .hb-stat-unit  { font-size: 0.7rem; color: #7c3aed; opacity: .7; }
+    .hb-stat-main  { background: #5b21b6; border-color: #5b21b6; grid-column: span 2; }
+    .hb-stat-main .hb-stat-label { color: rgba(255,255,255,.75); }
+    .hb-stat-main .hb-stat-val   { color: white; font-size: 1.9rem; }
+    .hb-stat-main .hb-stat-unit  { color: rgba(255,255,255,.65); }
+    .hb-goals { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+    .hb-goal {
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 11px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+    }
+    .hb-goal:hover { border-color: #5b21b6; background: #f5f3ff; }
+    .hb-goal-label { font-size: 0.68rem; font-weight: 700; color: #6b7280; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+    .hb-goal-val   { font-size: 1rem; font-weight: 900; color: #1e293b; display: block; }
+    .hb-goal-hint  { font-size: 0.62rem; color: #9ca3af; display: block; margin-top: 2px; }
+    .hb-goal-use   { font-size: 0.68rem; color: #5b21b6; font-weight: 800; display: block; margin-top: 5px; }
+
+    /* ── Modal ── */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: fadein .2s ease;
+    }
+    @keyframes fadein { from { opacity:0; } to { opacity:1; } }
+
+    .modal {
+      background: white;
+      border-radius: 28px;
+      padding: 32px 28px 28px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.25), 0 8px 32px rgba(0,0,0,.12);
+      animation: up .25s ease;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 18px;
+      background: none; border: none;
+      font-size: 1.4rem; cursor: pointer;
+      color: var(--text-muted); line-height: 1;
+    }
+    .modal-close:hover { color: var(--charcoal); }
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--charcoal);
+      margin-bottom: 4px;
+    }
+    .modal-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .plan-edit-notice {
+      background: #fef9c3;
+      border-left: 4px solid #eab308;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #713f12;
+      margin-bottom: 18px;
+      line-height: 1.45;
+    }
+    .plan-edit-notice strong { color: #92400e; }
+    [data-theme="dark"] .plan-edit-notice { background: #422006; border-left-color: #d97706; color: #fcd34d; }
+    [data-theme="dark"] .plan-edit-notice strong { color: #fbbf24; }
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .modal-field label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 6px;
+    }
+    .modal-field input {
+      padding: 11px 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .btn-calcwater {
+      width: 100%;
+      padding: 13px;
+      background: var(--green);
+      color: var(--charcoal);
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: .3px;
+      transition: opacity .2s;
+    }
+    .btn-calcwater:hover { opacity: .88; }
+
+    /* Resultado água */
+    .water-result {
+      margin-top: 20px;
+      background: #1c1c1c;
+      border-radius: 18px;
+      padding: 22px 20px;
+      color: white;
+      text-align: center;
+      animation: up .3s ease;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .water-liters {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--green);
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(98,200,35,0.5);
+    }
+    .water-unit { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .8px; }
+    .water-glasses {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 6px;
+    }
+    .water-tip {
+      margin-top: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.6;
+      text-align: left;
+    }
+    .water-tip strong { color: rgba(255,255,255,0.95); font-weight: 700; }
+
+    /* scrollbar */
+    .dropdown::-webkit-scrollbar { width: 6px; }
+    .dropdown::-webkit-scrollbar-track { background: transparent; }
+    .dropdown::-webkit-scrollbar-thumb { background: #d1fae5; border-radius: 99px; }
+
+    /* ── Dark mode ──────────────────────────────────────────── */
+    [data-theme="dark"] {
+      --green-bg: #0b0718;
+      --charcoal: #f0f4f0;
+      --text: #e8e8f0;
+      --text-muted: #7c7a9c;
+      --border: rgba(139,92,246,0.18);
+      --purple-light: #2e1065;
+      --card-shadow: 0 8px 32px rgba(0,0,0,.65), 0 0 0 1px rgba(139,92,246,0.07);
+    }
+    [data-theme="dark"] body {
+      background: #0b0718;
+      background-image: radial-gradient(ellipse 90% 50% at 50% -10%, rgba(109,40,217,0.18) 0%, transparent 65%);
+      color: #e8e8f0;
+    }
+    [data-theme="dark"] header {
+      background: linear-gradient(160deg, #1e0d38 0%, #110820 100%);
+      border-bottom: 1px solid rgba(139,92,246,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+    [data-theme="dark"] .logo em { color: #62C823; text-shadow: 0 0 24px rgba(98,200,35,.7), 0 0 60px rgba(98,200,35,.2); }
+    [data-theme="dark"] .logo span { color: #fff; }
+    [data-theme="dark"] .theme-toggle { background: rgba(139,92,246,0.1); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.2); }
+    [data-theme="dark"] .theme-toggle:hover { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.35); }
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .macro-card {
+      background: #170f2e;
+      border-color: rgba(139,92,246,0.14);
+      box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(139,92,246,0.06);
+    }
+    [data-theme="dark"] .note { background: rgba(28,19,0,0.8); border-color: #854d0e; color: #fcd34d; }
+    [data-theme="dark"] .note strong { color: #fde68a; }
+    [data-theme="dark"] input[type="text"],
+    [data-theme="dark"] input[type="number"] { background: rgba(11,7,24,0.8); border-color: rgba(139,92,246,0.2); color: #e8e8f0; }
+    [data-theme="dark"] input:focus { background: rgba(23,15,46,0.9); border-color: rgba(139,92,246,0.6); box-shadow: 0 0 0 4px rgba(139,92,246,.1); }
+    [data-theme="dark"] select.plan-select { background: rgba(11,7,24,0.8); border-color: rgba(139,92,246,0.2); color: #e8e8f0; }
+    [data-theme="dark"] .dropdown { background: #1a1030; border-color: rgba(139,92,246,0.25); box-shadow: 0 12px 40px rgba(0,0,0,.8); }
+    [data-theme="dark"] .dd-item { border-color: rgba(139,92,246,0.08); color: #e8e8f0; }
+    [data-theme="dark"] .dd-item:hover,
+    [data-theme="dark"] .dd-item.hi { background: rgba(139,92,246,0.1); }
+    [data-theme="dark"] .dd-cal,
+    [data-theme="dark"] .dd-empty { color: #7c7a9c; }
+    [data-theme="dark"] .btn { box-shadow: 0 4px 20px rgba(98,200,35,0.3); }
+    [data-theme="dark"] .btn:hover { background: var(--green-dark); box-shadow: 0 8px 28px rgba(98,200,35,.45); }
+    [data-theme="dark"] .btn-water { background: #2563eb; }
+    [data-theme="dark"] .btn-water:hover { background: #3b82f6; box-shadow: 0 6px 20px rgba(37,99,235,.5); }
+    [data-theme="dark"] .btn-imc { background: #7c3aed; }
+    [data-theme="dark"] .btn-imc:hover { background: #8b5cf6; box-shadow: 0 6px 20px rgba(124,58,237,.5); }
+    [data-theme="dark"] .btn-plan { background: #0d9488; }
+    [data-theme="dark"] .btn-plan:hover { background: #0f9e92; box-shadow: 0 6px 20px rgba(13,148,136,.5); }
+    [data-theme="dark"] .modal {
+      background: #170f2e;
+      border: 1px solid rgba(139,92,246,0.2);
+      box-shadow: 0 24px 64px rgba(0,0,0,.85);
+    }
+    [data-theme="dark"] .modal-title { color: #f1f0ff; }
+    [data-theme="dark"] .modal-close { color: #7c7a9c; }
+    [data-theme="dark"] .modal-close:hover { color: #e8e8f0; }
+    [data-theme="dark"] .meal-card {
+      background: #120a24;
+      border-color: rgba(139,92,246,0.12);
+      box-shadow: 0 2px 12px rgba(0,0,0,.4);
+    }
+    [data-theme="dark"] .meal-kcal { background: rgba(13,148,136,0.2); color: #5eead4; }
+    [data-theme="dark"] .meal-item { border-color: rgba(139,92,246,0.08); }
+    [data-theme="dark"] .meal-item-name { color: #e2e0f0; }
+    [data-theme="dark"] .meal-item-input { color: #e2e0f0; border-bottom-color: rgba(139,92,246,0.2); }
+    [data-theme="dark"] .meal-item-input:focus { border-bottom-color: rgba(139,92,246,0.6); }
+    [data-theme="dark"] .meal-title { color: #5eead4; }
+    [data-theme="dark"] .meal-item-qty { color: #a78bfa; }
+    [data-theme="dark"] .bar-bg { background: rgba(139,92,246,0.12); }
+    [data-theme="dark"] .m-name { color: #f1f0ff; }
+    [data-theme="dark"] .res-card { background: #1e1040; border-color: rgba(139,92,246,0.2); }
+    [data-theme="dark"] .hb-stat { background: rgba(30,16,64,0.9); border-color: rgba(109,40,217,0.4); }
+    [data-theme="dark"] .hb-goal { border-color: rgba(139,92,246,0.15); background: rgba(11,7,24,0.5); }
+    [data-theme="dark"] .hb-goal:hover { background: rgba(30,16,64,0.7); border-color: rgba(139,92,246,0.5); }
+    [data-theme="dark"] .hb-goal-val { color: #f1f0ff; }
+    [data-theme="dark"] .hb-goal-use { color: #a78bfa; }
+    [data-theme="dark"] .chip-a { background: rgba(98,200,35,0.15); color: #86efac; border: 1px solid rgba(98,200,35,0.25); }
+    [data-theme="dark"] .chip-b { background: rgba(139,92,246,0.15); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.25); }
+    [data-theme="dark"] .water-result { background: #1e1040; border-color: rgba(139,92,246,0.2); }
+    [data-theme="dark"] .water-tip { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.18); color: rgba(228,220,255,0.8); }
+    [data-theme="dark"] .water-tip strong { color: #e8e8f0; }
+    [data-theme="dark"] .tagline { opacity: 1; color: rgba(196,181,253,0.4); letter-spacing: 1px; }
+    [data-theme="dark"] .plan-total { background: #0d6e68; }
+    [data-theme="dark"] .analysis-panel { background: #120a24; border-color: rgba(139,92,246,0.18); }
+    [data-theme="dark"] .analysis-header { color: #7c7a9c; }
+    [data-theme="dark"] .analysis-header button { color: #5a5878; }
+    [data-theme="dark"] .tip-good { background: rgba(5,46,22,0.8); border-color: #166534; }
+    [data-theme="dark"] .tip-good .tip-text { color: #a7f3d0; }
+    [data-theme="dark"] .tip-warn { background: rgba(28,19,0,0.8); border-color: #854d0e; }
+    [data-theme="dark"] .tip-warn .tip-text { color: #fde68a; }
+    [data-theme="dark"] .tip-info { background: rgba(12,26,56,0.8); border-color: #1e40af; }
+    [data-theme="dark"] .tip-info .tip-text { color: #bfdbfe; }
+    [data-theme="dark"] .swap-tip { background: rgba(13,148,136,0.15); border-left-color: #0d9488; color: #5eead4; }
+    [data-theme="dark"] .btn-analyze { border-color: rgba(139,92,246,0.4); color: #c4b5fd; }
+    [data-theme="dark"] .btn-analyze:hover { background: rgba(139,92,246,0.15); color: #e9d5ff; }
+    [data-theme="dark"] .btn-add-meal { background: #4c1d95; }
+    [data-theme="dark"] .btn-add-meal:hover { background: #6d28d9; box-shadow: 0 6px 20px rgba(91,33,182,0.5); }
+    [data-theme="dark"] .btn-rm-food { color: #f87171; }
+    [data-theme="dark"] .btn-rm-food:hover { color: #fca5a5; }
+    [data-theme="dark"] .btn-rm-meal { background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.3); color: #f87171; }
+    [data-theme="dark"] .btn-rm-meal:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+    [data-theme="dark"] .btn-add-food { color: #86efac; border-color: rgba(98,200,35,0.25); }
+    [data-theme="dark"] .btn-add-food:hover { color: #000; }
+    [data-theme="dark"] .meal-name-input { color: #5eead4; border-bottom-color: rgba(139,92,246,0.2); }
+
+    /* Botão de tema */
+    .theme-toggle {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: rgba(0,0,0,.18);
+      border: none;
+      border-radius: 50%;
+      width: 38px; height: 38px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .theme-toggle:hover { background: rgba(0,0,0,.32); }
+
+    /* ── Botão PDF ── */
+    .btn-pdf {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 10px; padding: 12px;
+      background: transparent; border: 2px solid var(--green);
+      border-radius: var(--radius-btn); font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; color: var(--green-xdark);
+      transition: background .2s, color .2s, box-shadow .2s;
+    }
+    .btn-pdf:hover { background: var(--green); color: var(--charcoal); box-shadow: 0 6px 20px rgba(98,200,35,0.35); }
+
+    /* ── Botão analisar plano ── */
+    .btn-analyze {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 10px; padding: 12px;
+      background: transparent; border: 2px solid #0f766e;
+      border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; color: #0f766e;
+      transition: background .2s, color .2s;
+    }
+    .btn-analyze:hover { background: #0f766e; color: white; }
+
+    /* ── Painel de análise nutricional ── */
+    .analysis-panel {
+      margin-top: 10px;
+      padding: 14px 14px 7px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      animation: up .25s ease;
+    }
+    .analysis-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 0.76rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .8px; color: #374151;
+    }
+    .analysis-header button {
+      background: none; border: none; cursor: pointer;
+      font-size: 1.1rem; color: #6b7280; padding: 0 4px; line-height: 1;
+    }
+    .tip-item {
+      display: flex; gap: 9px; align-items: flex-start;
+      padding: 9px 11px; border-radius: 9px; border: 1.5px solid;
+      margin-bottom: 7px;
+    }
+    .tip-item .tip-icon { font-weight: 900; flex-shrink: 0; font-size: 0.85rem; margin-top: 1px; }
+    .tip-item .tip-text { font-size: 0.79rem; line-height: 1.55; }
+    .tip-good  { background: #f0fdf4; border-color: #bbf7d0; }
+    .tip-good  .tip-icon { color: #15803d; }
+    .tip-good  .tip-text { color: #374151; }
+    .tip-warn  { background: #fffbeb; border-color: #fde68a; }
+    .tip-warn  .tip-icon { color: #b45309; }
+    .tip-warn  .tip-text { color: #374151; }
+    .tip-info  { background: #eff6ff; border-color: #bfdbfe; }
+    .tip-info  .tip-icon { color: #1d4ed8; }
+    .tip-info  .tip-text { color: #374151; }
+
+    /* ── Dica contextual de troca de alimento ── */
+    .swap-tip {
+      font-size: 0.72rem; font-weight: 700; color: #0f766e;
+      background: #f0fdf4; border-left: 3px solid #34d399;
+      padding: 3px 8px 3px 10px; margin: 1px 0 3px;
+      border-radius: 0 6px 6px 0;
+      animation: up .2s ease, fadeout .3s ease 3.2s both;
+    }
+
+    /* ── Botão fechar (rodapé do modal) ── */
+    .btn-fechar {
+      display: block; width: 100%; margin-top: 8px; padding: 12px;
+      background: transparent; border: 2px solid #e5e7eb;
+      border-radius: var(--radius-btn); font-size: 0.88rem; font-weight: 700;
+      cursor: pointer; color: var(--text-muted);
+      transition: border-color .2s, color .2s;
+    }
+    .btn-fechar:hover { border-color: #9ca3af; color: var(--charcoal); }
+
+    [data-theme="dark"] .btn-pdf { color: var(--green); }
+    [data-theme="dark"] .btn-pdf:hover { color: var(--charcoal); }
+    [data-theme="dark"] .btn-fechar { border-color: #334155; color: #94a3b8; }
+    [data-theme="dark"] .btn-fechar:hover { border-color: #94a3b8; color: #f1f5f9; }
+
+    /* ── Impressão / PDF ── */
+    #printArea { display: none; }
+    @media print {
+      body > * { display: none !important; }
+      #printArea { display: block !important; padding: 24px; font-family: -apple-system, sans-serif; }
+      .print-logo { font-size: 1.5rem; font-weight: 900; letter-spacing: -1px; color: #2B2B2B; }
+      .print-logo span { color: #62C823; }
+      .print-meta { font-size: 0.82rem; color: #6b7280; margin: 4px 0 16px; padding-bottom: 12px; border-bottom: 2px solid #62C823; }
+      .meal-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; page-break-inside: avoid; }
+      .meal-title { font-size: 0.78rem; font-weight: 800; color: #0f766e; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+      .meal-kcal { background: #ccfbf1; color: #0f766e; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; }
+      .meal-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.82rem; flex-wrap: nowrap; }
+      .meal-item:last-child { border-bottom: none; }
+      .meal-item-name { color: #1e293b; }
+      .meal-item-qty { font-weight: 700; color: #0f766e; white-space: nowrap; margin-left: 8px; }
+      .meal-item-ac { flex: 1; }
+      .meal-item-input { border: none; font-size: 0.82rem; font-weight: 600; color: #1e293b; background: none; width: auto; }
+      .meal-item-dd { display: none !important; }
+      .plan-total { background: #0f766e; color: white; border-radius: 8px; padding: 12px 14px; text-align: center; font-size: 0.88rem; font-weight: 800; margin-top: 8px; }
+      .plan-macros { display: flex; justify-content: center; gap: 16px; margin-top: 5px; font-size: 0.75rem; opacity: .85; }
+    }
+
+    /* ── Mobile ─────────────────────────────────────────────── */
+    @media (max-width: 520px) {
+      /* Impede zoom automático do iOS em campos de texto */
+      input[type="text"], input[type="number"], select { font-size: 1rem !important; }
+
+      /* Header */
+      header { padding: 20px 16px 16px; }
+      .logo { font-size: 2rem; }
+      .tagline { font-size: 0.8rem; }
+
+      /* Container */
+      .container { padding: 20px 12px 48px; }
+
+      /* Cards da substituição */
+      .card { padding: 18px 16px; }
+      .res-card { padding: 20px; }
+      .res-big { font-size: 1.8rem; }
+      .macro-card { padding: 18px 16px; }
+
+      /* Botões */
+      .btn { font-size: 0.9rem; padding: 14px 12px; }
+      .action-btn { padding: 13px 14px !important; gap: 12px !important; }
+      .action-icon { width: 34px; height: 34px; }
+      .action-sub { display: none; }
+
+      /* Modal — bottom sheet no celular */
+      .modal-bg {
+        padding: 0;
+        align-items: flex-end;
+      }
+      .modal {
+        padding: 24px 16px 28px;
+        border-radius: 22px 22px 0 0;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+
+      /* Grids 2-col dentro dos modais → 1 coluna */
+      .modal-2col { grid-template-columns: 1fr !important; }
+
+      /* Grids 3-col (peso/altura/idade) → 3-col mantido (inputs numéricos pequenos) */
+
+      /* Objetivos HB (3 cards) → empilhados */
+      .hb-goals { grid-template-columns: 1fr !important; }
+      .hb-goal { display: flex; align-items: center; justify-content: space-between; text-align: left; padding: 12px 14px; }
+      .hb-goal-label { margin-bottom: 0; margin-right: 8px; }
+      .hb-goal-val { font-size: 1.2rem; }
+      .hb-goal-hint { display: none; }
+      .hb-goal-use { margin-top: 0; margin-left: auto; white-space: nowrap; }
+
+      /* Stats HB — 1 coluna no mobile */
+      .hb-stats { grid-template-columns: 1fr !important; }
+      .hb-stat-main { grid-column: span 1 !important; }
+
+      /* Plano de refeições */
+      .plan-result { max-height: none; overflow-y: visible; padding-right: 0; }
+      .plan-total { font-size: 0.85rem; }
+      .plan-macros { gap: 12px; font-size: 0.73rem; }
+      .meal-item { flex-wrap: wrap; row-gap: 2px; }
+      .meal-item-qty { margin-left: 0; font-size: 0.8rem; }
+      .meal-item-name { flex: 1 1 100%; }
+      .meal-item-ac { flex: 1 1 100%; }
+      .meal-item-input { font-size: 1rem; }
+
+      /* Legendas de macro */
+      .legend { flex-wrap: wrap; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<header style="position:relative">
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
+  <div class="header-inner">
+    <div class="logo"><em>NUNZIO</em><span>DIET</span></div>
+  </div>
+  <p class="tagline">SUBSTITUIÇÃO INTELIGENTE DE ALIMENTOS</p>
+</header>
+
+<div class="container">
+  <div class="grid-2">
+
+    <!-- Alimento A -->
+    <div class="card">
+      <div class="chip chip-a">Alimento atual</div>
+      <div class="form-group">
+        <label for="foodA">Nome do alimento</label>
+        <div class="ac-wrap">
+          <input type="text" id="foodA" placeholder="Ex: Arroz branco cozido" autocomplete="off">
+          <div class="dropdown" id="ddA"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="qtyA">Quantidade (g)</label>
+        <input type="number" id="qtyA" placeholder="Ex: 150" min="1" max="5000">
+      </div>
+    </div>
+
+    <!-- Seta -->
+    <div class="arrow-col">⇄</div>
+
+    <!-- Alimento B -->
+    <div class="card">
+      <div class="chip chip-b">Substituto</div>
+      <div class="form-group">
+        <label for="foodB">Nome do alimento</label>
+        <div class="ac-wrap">
+          <input type="text" id="foodB" placeholder="Ex: Batata inglesa cozida" autocomplete="off">
+          <div class="dropdown" id="ddB"></div>
+        </div>
+      </div>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-top:8px;line-height:1.5">
+        A quantidade equivalente em calorias será calculada automaticamente.
+      </p>
+    </div>
+
+  </div>
+
+  <button class="btn" onclick="calculate()">Calcular substituição →</button>
+
+  <button class="btn-water action-btn" onclick="openWater()">
+    <div class="action-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+      </svg>
+    </div>
+    <div class="action-text">
+      <span class="action-label">Ingestão de Água</span>
+      <span class="action-sub">Calcule sua necessidade diária por peso e idade</span>
+    </div>
+    <svg class="action-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+
+  <button class="btn-imc action-btn" onclick="openHB()">
+    <div class="action-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+    </div>
+    <div class="action-text">
+      <span class="action-label">Gasto Calórico</span>
+      <span class="action-sub">TMB e GET pelo método Harris-Benedict</span>
+    </div>
+    <svg class="action-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+
+  <button class="btn-plan action-btn" onclick="openPlan()">
+    <div class="action-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+      </svg>
+    </div>
+    <div class="action-text">
+      <span class="action-label">Plano de Refeições</span>
+      <span class="action-sub">Cardápio diário personalizado com macros</span>
+    </div>
+    <svg class="action-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+
+  <!-- Modal Plano -->
+  <div class="modal-bg hidden" id="planModal" onclick="closePlanOnBg(event)">
+    <div class="modal modal-wide">
+      <button class="modal-close" onclick="closePlan()">×</button>
+      <div class="modal-title">🍽️ Sugestão de refeições</div>
+      <div class="modal-sub">Cardápio diário baseado no seu objetivo</div>
+      <div class="plan-edit-notice">✏️ <strong>Os campos dos alimentos são editáveis</strong> — clique em qualquer alimento para substituí-lo pela sua preferência.</div>
+
+      <div class="modal-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div>
+          <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Objetivo</label>
+          <select class="plan-select" id="p-objetivo">
+            <option value="" disabled selected>Selecionar</option>
+            <option value="emagrecer">Emagrecer</option>
+            <option value="manter">Manter peso</option>
+            <option value="massa">Ganhar massa</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Calorias / dia</label>
+          <input type="number" id="p-cal" placeholder="Ex: 2000" min="800" max="6000">
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:8px">Restrições alimentares</label>
+        <div style="display:flex;gap:18px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;cursor:pointer;color:#374151">
+            <input type="checkbox" id="r-veg" style="width:15px;height:15px;accent-color:#0f766e"> Vegetariano
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;cursor:pointer;color:#374151">
+            <input type="checkbox" id="r-gluten" style="width:15px;height:15px;accent-color:#0f766e"> Sem glúten
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;cursor:pointer;color:#374151">
+            <input type="checkbox" id="r-lactose" style="width:15px;height:15px;accent-color:#0f766e"> Sem lactose
+          </label>
+        </div>
+      </div>
+
+      <button class="btn-calcwater" style="background:#0f766e;color:white" onclick="generatePlan()">Gerar cardápio</button>
+      <div id="planResult" class="hidden plan-result"></div>
+      <div id="analysisPanel" class="hidden analysis-panel"></div>
+      <button id="btnAnalyzePlan" class="btn-analyze hidden" onclick="analyzePlan()">📊 Analisar plano</button>
+      <button id="btnPdf" class="btn-pdf hidden" onclick="printPlan()">⬇ Salvar como PDF</button>
+      <button id="btnClosePlan" class="btn-fechar hidden" onclick="closePlan()">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Modal Harris-Benedict -->
+  <div class="modal-bg hidden" id="hbModal" onclick="closeHBOnBg(event)">
+    <div class="modal modal-wide">
+      <button class="modal-close" onclick="closeHB()">×</button>
+      <div class="modal-title">🔥 Gasto calórico diário</div>
+      <div class="modal-sub">Equação de Harris-Benedict (revisada)</div>
+
+      <div class="modal-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Sexo</label>
+          <select class="plan-select" id="h-sexo">
+            <option value="" disabled selected>Selecionar</option>
+            <option value="m">Masculino</option>
+            <option value="f">Feminino</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Nível de atividade</label>
+          <select class="plan-select" id="h-ativ">
+            <option value="" disabled selected>Selecionar</option>
+            <option value="1.2">Sedentário</option>
+            <option value="1.375">Levemente ativo (1–3×/sem)</option>
+            <option value="1.55">Moderado (3–5×/sem)</option>
+            <option value="1.725">Muito ativo (6–7×/sem)</option>
+            <option value="1.9">Atleta / trabalho físico</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label for="h-peso">Peso (kg)</label>
+          <input type="number" id="h-peso" placeholder="70" min="1" max="300">
+        </div>
+        <div class="modal-field">
+          <label for="h-altura">Altura (cm)</label>
+          <input type="number" id="h-altura" placeholder="170" min="50" max="250">
+        </div>
+        <div class="modal-field">
+          <label for="h-idade">Idade</label>
+          <input type="number" id="h-idade" placeholder="30" min="1" max="120">
+        </div>
+      </div>
+
+      <button class="btn-calcwater" style="background:#5b21b6;color:white" onclick="calcHB()">Calcular</button>
+      <div id="hbResult" class="hidden hb-result"></div>
+      <button id="btnCloseHB" class="btn-fechar hidden" onclick="closeHB()">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Modal Água -->
+  <div class="modal-bg hidden" id="waterModal" onclick="closeWaterOnBg(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="closeWater()">×</button>
+      <div class="modal-title">💧 Ingestão diária de água</div>
+      <div class="modal-sub">Baseado nas diretrizes da OMS</div>
+
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label for="w-peso">Peso (kg)</label>
+          <input type="number" id="w-peso" placeholder="70" min="1" max="300">
+        </div>
+        <div class="modal-field">
+          <label for="w-altura">Altura (cm)</label>
+          <input type="number" id="w-altura" placeholder="170" min="50" max="250">
+        </div>
+        <div class="modal-field">
+          <label for="w-idade">Idade</label>
+          <input type="number" id="w-idade" placeholder="30" min="1" max="120">
+        </div>
+      </div>
+
+      <button class="btn-calcwater" onclick="calcWater()">Calcular</button>
+
+      <div id="waterResult" class="hidden"></div>
+      <button id="btnCloseWater" class="btn-fechar hidden" onclick="closeWater()">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Resultados -->
+  <div id="results" class="hidden">
+
+    <div class="res-card">
+      <div class="res-label">Equivalência calórica</div>
+      <div class="res-line"><span id="r-qA"></span> de <strong id="r-nA"></strong></div>
+      <div class="res-line" style="opacity:.7">equivale a</div>
+      <div class="res-big" id="r-qB"></div>
+      <div class="res-line">de <strong id="r-nB"></strong></div>
+      <div class="res-kcal" id="r-kcal"></div>
+    </div>
+
+    <div class="macro-card">
+      <div class="macro-heading">Comparação de macronutrientes</div>
+      <div class="legend">
+        <div class="leg"><div class="dot dot-a"></div><span id="leg-a"></span></div>
+        <div class="leg"><div class="dot dot-b"></div><span id="leg-b"></span></div>
+      </div>
+      <div id="macroRows"></div>
+    </div>
+
+    <div class="note" id="noteBox"></div>
+
+  </div>
+</div>
+
+<script>
+// ── Banco de dados (per 100 g): { name, cal, prot, carb, fat, fib }
+const DB = [
+  // Cereais & tubérculos
+  { name:"Arroz branco cozido",       cal:128, prot:2.5, carb:27.9, fat:0.2, fib:0.4 },
+  { name:"Arroz integral cozido",     cal:124, prot:2.6, carb:25.8, fat:1.0, fib:1.8 },
+  { name:"Batata inglesa cozida",     cal:77,  prot:2.0, carb:17.0, fat:0.1, fib:2.2 },
+  { name:"Batata doce cozida",        cal:86,  prot:1.6, carb:20.1, fat:0.1, fib:3.0 },
+  { name:"Mandioca cozida",           cal:155, prot:1.4, carb:36.7, fat:0.3, fib:1.9 },
+  { name:"Inhame cozido",             cal:116, prot:1.5, carb:27.5, fat:0.1, fib:4.1 },
+  { name:"Macarrão cozido",           cal:157, prot:5.8, carb:30.6, fat:0.9, fib:1.8 },
+  { name:"Macarrão integral cozido",  cal:149, prot:5.4, carb:28.7, fat:1.1, fib:3.9 },
+  { name:"Aveia em flocos",           cal:394, prot:13.9,carb:66.6, fat:8.5, fib:9.1 },
+  { name:"Pão integral",              cal:253, prot:8.9, carb:43.0, fat:4.2, fib:7.6 },
+  { name:"Pão branco",                cal:275, prot:8.1, carb:50.5, fat:4.0, fib:2.3 },
+  { name:"Tapioca (goma)",            cal:346, prot:0.5, carb:84.7, fat:0.1, fib:0.9 },
+  { name:"Cuscuz cozido",             cal:112, prot:3.8, carb:23.2, fat:0.2, fib:1.4 },
+  { name:"Milho cozido",              cal:86,  prot:3.2, carb:18.7, fat:1.3, fib:2.7 },
+  { name:"Quinoa cozida",             cal:120, prot:4.4, carb:21.3, fat:1.9, fib:2.8 },
+  { name:"Polenta cozida",            cal:70,  prot:1.7, carb:15.6, fat:0.3, fib:0.5 },
+
+  // Proteínas animais
+  { name:"Peito de frango grelhado",  cal:159, prot:32.0,carb:0.0,  fat:2.9, fib:0.0 },
+  { name:"Coxa de frango assada",     cal:215, prot:26.6,carb:0.0,  fat:11.6,fib:0.0 },
+  { name:"Patinho bovino grelhado",   cal:219, prot:28.5,carb:0.0,  fat:11.5,fib:0.0 },
+  { name:"Alcatra grelhada",          cal:202, prot:29.0,carb:0.0,  fat:9.4, fib:0.0 },
+  { name:"Carne moída (patinho)",     cal:200, prot:26.0,carb:0.0,  fat:10.0,fib:0.0 },
+  { name:"Filé de tilápia grelhado",  cal:128, prot:26.2,carb:0.0,  fat:2.7, fib:0.0 },
+  { name:"Salmão grelhado",           cal:206, prot:28.0,carb:0.0,  fat:10.0,fib:0.0 },
+  { name:"Atum em água (lata)",       cal:103, prot:24.1,carb:0.0,  fat:0.5, fib:0.0 },
+  { name:"Sardinha em lata (água)",   cal:140, prot:21.0,carb:0.0,  fat:6.0, fib:0.0 },
+  { name:"Ovo inteiro cozido",        cal:155, prot:12.6,carb:1.1,  fat:10.6,fib:0.0 },
+  { name:"Clara de ovo cozida",       cal:52,  prot:10.9,carb:0.7,  fat:0.2, fib:0.0 },
+  { name:"Camarão cozido",            cal:99,  prot:20.1,carb:0.9,  fat:1.7, fib:0.0 },
+
+  // Laticínios
+  { name:"Queijo cottage",            cal:98,  prot:11.1,carb:3.4,  fat:4.3, fib:0.0 },
+  { name:"Iogurte grego natural",     cal:97,  prot:9.0, carb:3.6,  fat:5.0, fib:0.0 },
+  { name:"Iogurte natural desnatado", cal:37,  prot:3.8, carb:5.3,  fat:0.2, fib:0.0 },
+  { name:"Leite desnatado",           cal:35,  prot:3.4, carb:5.0,  fat:0.1, fib:0.0 },
+  { name:"Leite integral",            cal:60,  prot:3.1, carb:4.7,  fat:3.2, fib:0.0 },
+  { name:"Queijo minas frescal",      cal:264, prot:17.4,carb:2.4,  fat:20.2,fib:0.0 },
+  { name:"Requeijão light",           cal:152, prot:9.0, carb:4.4,  fat:11.0,fib:0.0 },
+  { name:"Whey protein",              cal:400, prot:80.0,carb:8.0,  fat:4.0, fib:0.0 },
+
+  // Leguminosas
+  { name:"Feijão cozido",             cal:76,  prot:4.8, carb:13.6, fat:0.5, fib:8.5 },
+  { name:"Feijão preto cozido",       cal:77,  prot:4.5, carb:14.0, fat:0.5, fib:8.7 },
+  { name:"Lentilha cozida",           cal:116, prot:9.0, carb:20.1, fat:0.4, fib:7.9 },
+  { name:"Grão de bico cozido",       cal:164, prot:8.9, carb:27.4, fat:2.6, fib:7.6 },
+  { name:"Ervilha cozida",            cal:84,  prot:5.4, carb:15.6, fat:0.2, fib:5.7 },
+  { name:"Soja cozida",               cal:173, prot:16.6,carb:9.9,  fat:9.0, fib:6.0 },
+
+  // Vegetais
+  { name:"Brócolis cozido",           cal:35,  prot:2.4, carb:7.2,  fat:0.4, fib:3.3 },
+  { name:"Couve-flor cozida",         cal:23,  prot:1.8, carb:4.5,  fat:0.3, fib:2.5 },
+  { name:"Abobrinha cozida",          cal:17,  prot:1.2, carb:3.1,  fat:0.3, fib:1.1 },
+  { name:"Espinafre cozido",          cal:23,  prot:2.2, carb:3.7,  fat:0.3, fib:2.4 },
+  { name:"Cenoura cozida",            cal:41,  prot:0.9, carb:9.6,  fat:0.2, fib:3.0 },
+  { name:"Chuchu cozido",             cal:25,  prot:1.0, carb:5.6,  fat:0.1, fib:1.7 },
+  { name:"Alface",                    cal:15,  prot:1.4, carb:2.3,  fat:0.2, fib:2.0 },
+  { name:"Tomate",                    cal:18,  prot:0.9, carb:3.9,  fat:0.2, fib:1.2 },
+  { name:"Pepino",                    cal:16,  prot:0.7, carb:3.6,  fat:0.1, fib:0.5 },
+  { name:"Berinjela cozida",          cal:24,  prot:0.8, carb:5.9,  fat:0.2, fib:2.5 },
+  { name:"Vagem cozida",              cal:31,  prot:1.8, carb:7.0,  fat:0.2, fib:3.4 },
+  { name:"Repolho cozido",            cal:18,  prot:1.0, carb:4.0,  fat:0.1, fib:2.3 },
+  { name:"Couve refogada",            cal:35,  prot:3.1, carb:5.4,  fat:0.7, fib:3.8 },
+  { name:"Beterraba cozida",          cal:43,  prot:1.6, carb:9.6,  fat:0.1, fib:2.0 },
+  { name:"Pimentão vermelho",         cal:31,  prot:1.0, carb:7.2,  fat:0.3, fib:2.1 },
+  { name:"Cogumelo shitake",          cal:34,  prot:2.2, carb:6.8,  fat:0.5, fib:2.5 },
+
+  // Frutas
+  { name:"Banana prata",              cal:98,  prot:1.3, carb:26.0, fat:0.1, fib:2.0 },
+  { name:"Maçã",                      cal:56,  prot:0.3, carb:15.2, fat:0.1, fib:1.3 },
+  { name:"Laranja",                   cal:37,  prot:1.0, carb:8.9,  fat:0.1, fib:2.4 },
+  { name:"Mamão papaia",              cal:40,  prot:0.5, carb:10.4, fat:0.1, fib:1.8 },
+  { name:"Abacate",                   cal:160, prot:2.0, carb:8.5,  fat:14.7,fib:6.7 },
+  { name:"Morango",                   cal:30,  prot:0.6, carb:7.1,  fat:0.4, fib:2.0 },
+  { name:"Melancia",                  cal:33,  prot:0.7, carb:8.1,  fat:0.2, fib:0.4 },
+  { name:"Uva",                       cal:69,  prot:0.7, carb:18.1, fat:0.2, fib:0.9 },
+  { name:"Manga",                     cal:65,  prot:0.5, carb:17.0, fat:0.3, fib:1.8 },
+  { name:"Abacaxi",                   cal:55,  prot:0.5, carb:13.7, fat:0.1, fib:1.0 },
+  { name:"Pera",                      cal:57,  prot:0.4, carb:15.5, fat:0.1, fib:3.1 },
+
+  // Gorduras & oleaginosas
+  { name:"Azeite de oliva",           cal:884, prot:0.0, carb:0.0,  fat:100.0,fib:0.0 },
+  { name:"Castanha do pará",          cal:656, prot:14.3,carb:15.1, fat:63.5,fib:7.5 },
+  { name:"Amendoim torrado",          cal:581, prot:26.0,carb:19.7, fat:46.1,fib:8.0 },
+  { name:"Pasta de amendoim",         cal:588, prot:25.0,carb:19.7, fat:49.9,fib:6.0 },
+  { name:"Castanha de caju",          cal:570, prot:18.5,carb:32.7, fat:43.9,fib:3.3 },
+  { name:"Amêndoa",                   cal:579, prot:21.2,carb:21.7, fat:49.9,fib:12.5},
+  { name:"Nozes",                     cal:654, prot:15.2,carb:13.7, fat:65.2,fib:6.7 },
+  { name:"Chia (semente)",            cal:486, prot:16.5,carb:42.1, fat:30.7,fib:34.4},
+  { name:"Linhaça (semente)",         cal:534, prot:18.3,carb:28.9, fat:42.2,fib:27.3},
+
+  // ── TACO — Cereais e derivados
+  { name:"Arroz parboilizado cozido", cal:130, prot:2.7, carb:28.2, fat:0.2, fib:0.6 },
+  { name:"Farinha de mandioca crua",  cal:361, prot:1.6, carb:87.9, fat:0.3, fib:6.4 },
+  { name:"Farinha de mandioca torrada",cal:364,prot:1.8, carb:88.0, fat:0.3, fib:6.5 },
+  { name:"Farinha de milho amarela",  cal:354, prot:6.9, carb:77.7, fat:2.9, fib:7.3 },
+  { name:"Farinha de trigo",          cal:360, prot:9.8, carb:75.1, fat:1.4, fib:2.3 },
+  { name:"Farinha de trigo integral", cal:340, prot:9.0, carb:72.5, fat:2.5, fib:9.5 },
+  { name:"Fubá de milho",             cal:358, prot:7.6, carb:77.1, fat:2.0, fib:4.7 },
+  { name:"Flocos de milho (cereal)",  cal:379, prot:8.5, carb:83.0, fat:1.5, fib:2.1 },
+  { name:"Granola",                   cal:387, prot:9.3, carb:64.2, fat:11.9,fib:7.4 },
+  { name:"Pão francês",               cal:300, prot:9.4, carb:58.6, fat:3.1, fib:2.3 },
+  { name:"Pão de hambúrguer",         cal:264, prot:8.5, carb:48.5, fat:4.4, fib:2.1 },
+  { name:"Biscoito cream cracker",    cal:442, prot:9.7, carb:67.8, fat:15.3,fib:2.2 },
+  { name:"Biscoito maisena",          cal:436, prot:6.7, carb:72.4, fat:13.5,fib:1.6 },
+  { name:"Biscoito de polvilho assado",cal:483,prot:3.0, carb:75.6, fat:19.1,fib:1.0 },
+  { name:"Canjica branca cozida",     cal:166, prot:3.4, carb:35.9, fat:0.6, fib:1.4 },
+  { name:"Canjica amarela cozida",    cal:174, prot:3.5, carb:38.1, fat:0.6, fib:1.5 },
+  { name:"Pipoca estourada",          cal:376, prot:12.8,carb:74.8, fat:4.4, fib:14.2},
+  { name:"Macarrão instantâneo cozido",cal:103,prot:2.6, carb:16.9, fat:3.2, fib:0.5 },
+  { name:"Nhoque de batata cozido",   cal:110, prot:2.5, carb:23.5, fat:0.6, fib:0.8 },
+  { name:"Pão de queijo",             cal:289, prot:6.5, carb:44.5, fat:9.5, fib:0.5 },
+  { name:"Panqueca",                  cal:196, prot:6.2, carb:26.8, fat:7.3, fib:0.8 },
+  { name:"Bolo simples",              cal:305, prot:5.8, carb:48.4, fat:10.1,fib:0.5 },
+
+  // ── TACO — Tubérculos
+  { name:"Cará cozido",               cal:98,  prot:2.0, carb:22.6, fat:0.2, fib:2.5 },
+  { name:"Batata baroa cozida",       cal:87,  prot:1.7, carb:20.4, fat:0.1, fib:2.2 },
+  { name:"Batata inglesa frita",      cal:243, prot:3.8, carb:33.0, fat:11.3,fib:2.4 },
+
+  // ── TACO — Leguminosas
+  { name:"Feijão fradinho cozido",    cal:76,  prot:4.8, carb:13.7, fat:0.5, fib:8.8 },
+  { name:"Feijão jalo cozido",        cal:76,  prot:4.8, carb:13.9, fat:0.4, fib:7.7 },
+  { name:"Feijão branco cozido",      cal:139, prot:9.1, carb:25.5, fat:0.5, fib:6.3 },
+  { name:"Feijão verde cozido",       cal:57,  prot:4.0, carb:9.4,  fat:0.5, fib:7.0 },
+  { name:"Amendoim cozido",           cal:339, prot:14.4,carb:13.7, fat:25.6,fib:7.4 },
+
+  // ── TACO — Verduras e hortaliças
+  { name:"Abóbora cabotiá cozida",    cal:27,  prot:1.2, carb:5.7,  fat:0.1, fib:1.4 },
+  { name:"Abóbora moranga cozida",    cal:35,  prot:1.1, carb:7.0,  fat:0.2, fib:0.8 },
+  { name:"Agrião",                    cal:17,  prot:2.4, carb:1.4,  fat:0.3, fib:2.6 },
+  { name:"Alho",                      cal:150, prot:6.2, carb:31.4, fat:0.5, fib:2.1 },
+  { name:"Alho-poró",                 cal:61,  prot:1.5, carb:14.1, fat:0.3, fib:1.8 },
+  { name:"Aspargo cozido",            cal:22,  prot:2.2, carb:3.8,  fat:0.2, fib:1.7 },
+  { name:"Cebola crua",               cal:40,  prot:1.2, carb:9.0,  fat:0.1, fib:1.7 },
+  { name:"Cebola cozida",             cal:29,  prot:1.0, carb:6.5,  fat:0.1, fib:1.1 },
+  { name:"Chicória",                  cal:19,  prot:1.6, carb:3.7,  fat:0.2, fib:1.6 },
+  { name:"Coentro",                   cal:23,  prot:2.1, carb:3.1,  fat:0.4, fib:2.8 },
+  { name:"Erva-doce (bulbo)",         cal:31,  prot:1.2, carb:6.4,  fat:0.2, fib:3.1 },
+  { name:"Jiló cozido",               cal:22,  prot:1.0, carb:4.6,  fat:0.2, fib:1.4 },
+  { name:"Maxixe cozido",             cal:18,  prot:1.0, carb:3.8,  fat:0.1, fib:1.6 },
+  { name:"Quiabo cozido",             cal:25,  prot:1.5, carb:5.2,  fat:0.1, fib:2.6 },
+  { name:"Palmito de pupunha",        cal:28,  prot:2.3, carb:4.8,  fat:0.4, fib:2.1 },
+  { name:"Rabanete",                  cal:15,  prot:0.8, carb:2.7,  fat:0.1, fib:1.6 },
+  { name:"Rúcula",                    cal:25,  prot:2.6, carb:2.9,  fat:0.4, fib:1.6 },
+  { name:"Salsinha",                  cal:36,  prot:3.7, carb:3.3,  fat:0.8, fib:5.0 },
+  { name:"Pimentão verde",            cal:23,  prot:0.8, carb:5.1,  fat:0.2, fib:1.4 },
+  { name:"Pimentão amarelo",          cal:27,  prot:0.9, carb:6.0,  fat:0.2, fib:1.7 },
+  { name:"Milho verde cru",           cal:87,  prot:3.2, carb:18.7, fat:1.3, fib:2.7 },
+  { name:"Mandioquinha cozida",       cal:87,  prot:1.7, carb:20.4, fat:0.1, fib:2.2 },
+
+  // ── TACO — Frutas
+  { name:"Acerola",                   cal:33,  prot:0.9, carb:7.4,  fat:0.2, fib:1.5 },
+  { name:"Açaí (polpa congelada)",    cal:58,  prot:1.1, carb:6.7,  fat:5.0, fib:2.6 },
+  { name:"Cajá",                      cal:39,  prot:0.8, carb:9.5,  fat:0.3, fib:1.3 },
+  { name:"Caju",                      cal:43,  prot:1.0, carb:9.7,  fat:0.3, fib:1.5 },
+  { name:"Carambola",                 cal:35,  prot:0.6, carb:8.0,  fat:0.3, fib:2.8 },
+  { name:"Coco fresco (polpa)",       cal:406, prot:4.0, carb:9.3,  fat:42.3,fib:13.4},
+  { name:"Goiaba branca",             cal:54,  prot:2.3, carb:10.4, fat:1.0, fib:6.2 },
+  { name:"Goiaba vermelha",           cal:54,  prot:2.3, carb:10.4, fat:1.0, fib:6.2 },
+  { name:"Graviola",                  cal:62,  prot:1.0, carb:15.3, fat:0.3, fib:1.9 },
+  { name:"Jabuticaba",                cal:58,  prot:0.7, carb:14.3, fat:0.2, fib:0.5 },
+  { name:"Kiwi",                      cal:61,  prot:1.0, carb:14.6, fat:0.6, fib:2.0 },
+  { name:"Limão tahiti",              cal:32,  prot:0.9, carb:6.8,  fat:0.3, fib:2.3 },
+  { name:"Maracujá (polpa)",          cal:68,  prot:2.4, carb:13.4, fat:1.8, fib:1.3 },
+  { name:"Melão",                     cal:35,  prot:0.7, carb:8.8,  fat:0.1, fib:0.3 },
+  { name:"Nectarina",                 cal:53,  prot:1.1, carb:12.1, fat:0.3, fib:1.4 },
+  { name:"Pêssego",                   cal:47,  prot:0.9, carb:11.4, fat:0.1, fib:1.5 },
+  { name:"Pitanga",                   cal:40,  prot:0.8, carb:9.4,  fat:0.4, fib:0.5 },
+  { name:"Tangerina",                 cal:38,  prot:0.9, carb:9.0,  fat:0.1, fib:1.5 },
+  { name:"Umbu",                      cal:43,  prot:0.5, carb:10.5, fat:0.2, fib:1.0 },
+  { name:"Figo",                      cal:67,  prot:1.2, carb:16.2, fat:0.3, fib:2.4 },
+  { name:"Romã",                      cal:68,  prot:1.0, carb:16.6, fat:0.6, fib:2.2 },
+
+  // ── TACO — Carnes e derivados
+  { name:"Acém bovino cozido",        cal:219, prot:29.1,carb:0.0,  fat:11.2,fib:0.0 },
+  { name:"Contrafilé bovino grelhado",cal:228, prot:29.3,carb:0.0,  fat:12.5,fib:0.0 },
+  { name:"Costela bovina cozida",     cal:268, prot:26.7,carb:0.0,  fat:18.5,fib:0.0 },
+  { name:"Coxão mole bovino grelhado",cal:219, prot:28.5,carb:0.0,  fat:11.5,fib:0.0 },
+  { name:"Fígado bovino refogado",    cal:179, prot:26.5,carb:3.8,  fat:6.3, fib:0.0 },
+  { name:"Músculo bovino cozido",     cal:213, prot:30.3,carb:0.0,  fat:10.3,fib:0.0 },
+  { name:"Picanha bovina grelhada",   cal:242, prot:27.8,carb:0.0,  fat:14.9,fib:0.0 },
+  { name:"Frango inteiro assado",     cal:237, prot:24.3,carb:0.0,  fat:15.4,fib:0.0 },
+  { name:"Frango (asa) assado",       cal:280, prot:28.1,carb:0.0,  fat:18.5,fib:0.0 },
+  { name:"Linguiça de frango grelhada",cal:197,prot:15.1,carb:0.8,  fat:15.3,fib:0.0 },
+  { name:"Linguiça de porco grelhada",cal:293, prot:14.8,carb:0.9,  fat:26.0,fib:0.0 },
+  { name:"Lombo suíno assado",        cal:218, prot:30.6,carb:0.0,  fat:11.0,fib:0.0 },
+  { name:"Peito de peru assado",      cal:159, prot:29.4,carb:0.0,  fat:4.5, fib:0.0 },
+  { name:"Pernil suíno assado",       cal:240, prot:29.5,carb:0.0,  fat:14.0,fib:0.0 },
+  { name:"Presunto cozido",           cal:112, prot:14.7,carb:1.7,  fat:5.6, fib:0.0 },
+
+  // ── TACO — Pescados e frutos do mar
+  { name:"Bacalhau dessalgado cozido",cal:134, prot:29.8,carb:0.0,  fat:1.9, fib:0.0 },
+  { name:"Cação cozido",              cal:113, prot:23.8,carb:0.0,  fat:2.0, fib:0.0 },
+  { name:"Corvina cozida",            cal:118, prot:24.1,carb:0.0,  fat:2.4, fib:0.0 },
+  { name:"Linguado cozido",           cal:92,  prot:18.9,carb:0.0,  fat:1.8, fib:0.0 },
+  { name:"Lula cozida",               cal:92,  prot:15.8,carb:3.6,  fat:1.6, fib:0.0 },
+  { name:"Merluza cozida",            cal:109, prot:22.9,carb:0.0,  fat:2.0, fib:0.0 },
+  { name:"Ostra crua",                cal:45,  prot:5.8, carb:4.3,  fat:1.3, fib:0.0 },
+  { name:"Pargo cozido",              cal:138, prot:25.8,carb:0.0,  fat:3.9, fib:0.0 },
+  { name:"Pescada cozida",            cal:127, prot:25.0,carb:0.0,  fat:3.3, fib:0.0 },
+  { name:"Polvo cozido",              cal:82,  prot:14.9,carb:3.7,  fat:1.0, fib:0.0 },
+  { name:"Robalo cozido",             cal:118, prot:25.0,carb:0.0,  fat:1.8, fib:0.0 },
+  { name:"Truta assada",              cal:180, prot:26.7,carb:0.0,  fat:8.0, fib:0.0 },
+  { name:"Lagosta cozida",            cal:98,  prot:20.6,carb:0.0,  fat:1.9, fib:0.0 },
+  { name:"Mariscos cozidos",          cal:113, prot:19.3,carb:4.5,  fat:2.1, fib:0.0 },
+
+  // ── TACO — Leite e derivados
+  { name:"Coalhada",                  cal:85,  prot:3.8, carb:11.8, fat:2.7, fib:0.0 },
+  { name:"Cream cheese",              cal:323, prot:7.2, carb:4.2,  fat:31.4,fib:0.0 },
+  { name:"Manteiga",                  cal:726, prot:0.4, carb:0.0,  fat:82.0,fib:0.0 },
+  { name:"Margarina",                 cal:720, prot:0.6, carb:0.7,  fat:80.0,fib:0.0 },
+  { name:"Queijo mussarela",          cal:328, prot:21.4,carb:3.5,  fat:26.0,fib:0.0 },
+  { name:"Queijo parmesão",           cal:452, prot:35.7,carb:3.2,  fat:33.0,fib:0.0 },
+  { name:"Queijo prato",              cal:356, prot:24.6,carb:0.9,  fat:28.2,fib:0.0 },
+  { name:"Queijo ricota",             cal:164, prot:11.4,carb:3.3,  fat:11.7,fib:0.0 },
+  { name:"Iogurte de morango",        cal:90,  prot:3.3, carb:14.5, fat:2.5, fib:0.0 },
+  { name:"Leite de coco",             cal:173, prot:1.5, carb:4.5,  fat:17.5,fib:0.0 },
+
+  // ── TACO — Óleos e gorduras
+  { name:"Óleo de canola",            cal:900, prot:0.0, carb:0.0,  fat:100.0,fib:0.0},
+  { name:"Óleo de girassol",          cal:900, prot:0.0, carb:0.0,  fat:100.0,fib:0.0},
+  { name:"Óleo de milho",             cal:900, prot:0.0, carb:0.0,  fat:100.0,fib:0.0},
+  { name:"Óleo de soja",              cal:900, prot:0.0, carb:0.0,  fat:100.0,fib:0.0},
+  { name:"Creme de leite",            cal:327, prot:2.4, carb:3.0,  fat:35.1,fib:0.0 },
+
+  // ── TACO — Açúcares e produtos açucarados
+  { name:"Açúcar branco",             cal:387, prot:0.0, carb:99.5, fat:0.0, fib:0.0 },
+  { name:"Açúcar mascavo",            cal:375, prot:0.2, carb:94.9, fat:0.1, fib:0.0 },
+  { name:"Mel de abelha",             cal:309, prot:0.3, carb:84.1, fat:0.0, fib:0.0 },
+  { name:"Melado de cana",            cal:279, prot:0.5, carb:73.9, fat:0.0, fib:0.0 },
+  { name:"Rapadura",                  cal:380, prot:0.9, carb:91.1, fat:0.4, fib:0.2 },
+  { name:"Brigadeiro",                cal:381, prot:5.7, carb:58.0, fat:15.1,fib:0.5 },
+  { name:"Goiabada",                  cal:296, prot:0.5, carb:76.3, fat:0.1, fib:1.7 },
+  { name:"Achocolatado em pó",        cal:378, prot:6.4, carb:82.0, fat:3.2, fib:3.8 },
+  { name:"Chocolate ao leite",        cal:544, prot:7.8, carb:57.9, fat:31.5,fib:2.5 },
+  { name:"Chocolate amargo (70%)",    cal:533, prot:9.0, carb:42.0, fat:38.0,fib:11.0},
+
+  // ── TACO — Sementes e oleaginosas
+  { name:"Gergelim",                  cal:582, prot:18.0,carb:20.5, fat:49.7,fib:11.9},
+  { name:"Semente de girassol",       cal:584, prot:24.3,carb:14.9, fat:49.4,fib:6.2 },
+  { name:"Pistache",                  cal:571, prot:20.6,carb:27.5, fat:44.4,fib:10.6},
+  { name:"Macadâmia",                 cal:718, prot:7.9, carb:13.8, fat:75.8,fib:8.6 },
+
+  // ── TACO — Bebidas
+  { name:"Suco de laranja natural",   cal:45,  prot:0.7, carb:10.4, fat:0.1, fib:0.3 },
+  { name:"Suco de uva integral",      cal:58,  prot:0.4, carb:14.0, fat:0.1, fib:0.2 },
+  { name:"Água de coco",              cal:22,  prot:0.7, carb:4.4,  fat:0.2, fib:0.2 },
+  { name:"Leite de soja",             cal:52,  prot:3.3, carb:6.3,  fat:1.8, fib:0.4 },
+
+  // ── TACO — Preparações e pratos típicos brasileiros
+  { name:"Farofa de manteiga",        cal:314, prot:2.5, carb:62.0, fat:6.5, fib:5.9 },
+  { name:"Feijão tropeiro",           cal:154, prot:8.3, carb:15.7, fat:6.3, fib:4.0 },
+  { name:"Tutu de feijão",            cal:127, prot:7.2, carb:16.1, fat:3.5, fib:4.9 },
+  { name:"Moqueca de peixe",          cal:112, prot:12.5,carb:3.5,  fat:5.8, fib:0.5 },
+  { name:"Galinhada",                 cal:190, prot:15.6,carb:20.5, fat:5.0, fib:1.0 },
+  { name:"Coxinha",                   cal:237, prot:9.8, carb:26.8, fat:10.5,fib:0.8 },
+  { name:"Acarajé",                   cal:260, prot:10.2,carb:18.7, fat:16.2,fib:3.7 },
+  { name:"Vatapá",                    cal:188, prot:9.2, carb:15.8, fat:10.0,fib:1.5 },
+  { name:"Vitamina de abacate",       cal:143, prot:2.5, carb:13.0, fat:9.6, fib:2.0 },
+  { name:"Vitamina de banana",        cal:90,  prot:3.5, carb:15.5, fat:1.8, fib:0.6 },
+];
+
+// ── Autocomplete
+function norm(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  const row = Array.from({length: n + 1}, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    let prev = row[0]; row[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const tmp = row[j];
+      row[j] = a[i-1] === b[j-1] ? prev : 1 + Math.min(prev, row[j], row[j-1]);
+      prev = tmp;
+    }
+  }
+  return row[n];
+}
+
+function fuzzyScore(foodName, query) {
+  const fn = norm(foodName);
+  const q  = norm(query);
+  if (!q) return Infinity;
+  if (q.length === 1) {
+    return fn.split(/\s+/).some(w => w.startsWith(q)) ? 0 : Infinity;
+  }
+  if (fn.includes(q)) return 0;
+  const words = fn.split(/\s+/);
+  let min = Infinity;
+  for (const w of words) {
+    if (Math.abs(w.length - q.length) > 2) continue;
+    const d = levenshtein(q, w.slice(0, q.length + 1));
+    if (d <= 2) min = Math.min(min, d);
+  }
+  return min;
+}
+
+function setupAC(inputId, dropdownId) {
+  const inp = document.getElementById(inputId);
+  const dd  = document.getElementById(dropdownId);
+  let hi = -1, selected = null;
+
+  inp.addEventListener('input', () => {
+    const q = norm(inp.value.trim());
+    selected = null;
+    if (!q) { dd.classList.remove('open'); return; }
+
+    const matches = DB
+      .map(f => ({ f, s: fuzzyScore(f.name, inp.value.trim()) }))
+      .filter(x => x.s < Infinity)
+      .sort((a, b) => a.s - b.s)
+      .slice(0, 10)
+      .map(x => x.f);
+    if (!matches.length) {
+      dd.innerHTML = `<div class="dd-empty">Nenhum alimento encontrado</div>`;
+    } else {
+      dd.innerHTML = matches.map((f, i) =>
+        `<div class="dd-item" data-idx="${i}" data-name="${f.name}">
+          ${f.name}
+          <span class="dd-cal">${f.cal} kcal / 100 g</span>
+        </div>`
+      ).join('');
+      dd.querySelectorAll('.dd-item').forEach(el => {
+        el.addEventListener('mousedown', e => e.preventDefault());
+        el.addEventListener('click', () => {
+          inp.value = el.dataset.name;
+          selected = DB.find(f => f.name === el.dataset.name);
+          dd.classList.remove('open');
+          inp.classList.remove('error');
+        });
+      });
+    }
+    hi = -1;
+    dd.classList.add('open');
+  });
+
+  inp.addEventListener('keydown', e => {
+    const items = dd.querySelectorAll('.dd-item');
+    if (e.key === 'ArrowDown') { hi = Math.min(hi+1, items.length-1); highlight(items); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { hi = Math.max(hi-1, 0); highlight(items); e.preventDefault(); }
+    else if (e.key === 'Enter' && hi >= 0) { items[hi].click(); }
+    else if (e.key === 'Escape') { dd.classList.remove('open'); }
+  });
+
+  function highlight(items) {
+    items.forEach((el, i) => el.classList.toggle('hi', i === hi));
+  }
+
+  inp.addEventListener('blur', () => setTimeout(() => dd.classList.remove('open'), 150));
+
+  return { getFood: () => selected || DB.find(f => norm(f.name) === norm(inp.value.trim())) };
+}
+
+const acA = setupAC('foodA', 'ddA');
+const acB = setupAC('foodB', 'ddB');
+
+// ── Calculation
+function calculate() {
+  const fA = acA.getFood();
+  const fB = acB.getFood();
+  const qA = parseFloat(document.getElementById('qtyA').value);
+
+  let ok = true;
+  if (!fA) { document.getElementById('foodA').classList.add('error'); ok = false; }
+  if (!fB) { document.getElementById('foodB').classList.add('error'); ok = false; }
+  if (!qA || qA <= 0) { document.getElementById('qtyA').classList.add('error'); ok = false; }
+  if (!ok) return;
+
+  document.getElementById('foodA').classList.remove('error');
+  document.getElementById('foodB').classList.remove('error');
+  document.getElementById('qtyA').classList.remove('error');
+
+  const kcalTotal = (qA / 100) * fA.cal;
+  const qB = (kcalTotal / fB.cal) * 100;
+
+  // Macros for the actual quantities
+  const mA = calcMacros(fA, qA);
+  const mB = calcMacros(fB, qB);
+
+  // ── Fill result card
+  document.getElementById('r-qA').textContent = fmt(qA) + ' g';
+  document.getElementById('r-nA').textContent = fA.name;
+  document.getElementById('r-qB').textContent = fmt(qB) + ' g';
+  document.getElementById('r-nB').textContent = fB.name;
+  document.getElementById('r-kcal').textContent =
+    `Ambas as porções têm aproximadamente ${Math.round(kcalTotal)} kcal`;
+
+  // ── Legend
+  document.getElementById('leg-a').textContent = `${fmt(qA)}g ${fA.name}`;
+  document.getElementById('leg-b').textContent = `${fmt(qB)}g ${fB.name}`;
+
+  // ── Macro bars
+  const macros = [
+    { label:'Calorias', unit:'kcal', a: mA.cal, b: mB.cal },
+    { label:'Proteína', unit:'g',    a: mA.prot,b: mB.prot },
+    { label:'Carboidratos', unit:'g',a: mA.carb,b: mB.carb },
+    { label:'Gordura', unit:'g',     a: mA.fat, b: mB.fat  },
+    { label:'Fibras',  unit:'g',     a: mA.fib, b: mB.fib  },
+  ];
+
+  const rows = document.getElementById('macroRows');
+  rows.innerHTML = macros.map(m => {
+    const max = Math.max(m.a, m.b, 0.1);
+    const pA = (m.a / max * 100).toFixed(1);
+    const pB = (m.b / max * 100).toFixed(1);
+    return `
+      <div class="m-row">
+        <div class="m-top">
+          <span class="m-name">${m.label}</span>
+          <span class="m-vals" style="color:#22c55e">${m.a.toFixed(1)} ${m.unit}</span>
+          <span style="font-size:.75rem;color:#aaa;padding:0 4px">vs</span>
+          <span class="m-vals" style="color:#7c3aed">${m.b.toFixed(1)} ${m.unit}</span>
+        </div>
+        <div class="m-bars">
+          <div class="bar-bg"><div class="bar-fill fill-a" style="width:${pA}%"></div></div>
+          <div class="bar-bg"><div class="bar-fill fill-b" style="width:${pB}%"></div></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // ── Note
+  const notes = [];
+  const protDiff = mB.prot - mA.prot;
+  const carbDiff = mB.carb - mA.carb;
+  if (Math.abs(protDiff) > 5)
+    notes.push(protDiff > 0
+      ? `⬆ O substituto tem ${protDiff.toFixed(1)}g a mais de proteína — ótimo para preservar massa muscular.`
+      : `⬇ O substituto tem ${Math.abs(protDiff).toFixed(1)}g a menos de proteína. Considere complementar com outra fonte proteica.`);
+  if (Math.abs(carbDiff) > 10)
+    notes.push(carbDiff > 0
+      ? `⬆ O substituto tem ${carbDiff.toFixed(1)}g a mais de carboidratos.`
+      : `⬇ O substituto tem ${Math.abs(carbDiff).toFixed(1)}g a menos de carboidratos — pode ser interessante para dietas low-carb.`);
+  if (qB > qA * 1.5)
+    notes.push(`📦 Você pode comer ${fmt(qB)}g do substituto — uma porção bem maior, ótimo para saciar mais!`);
+  if (qB < qA * 0.6)
+    notes.push(`⚠ O substituto é bem mais calórico: a porção equivalente é bem menor (${fmt(qB)}g). Atenção na medição.`);
+
+  const noteBox = document.getElementById('noteBox');
+  if (notes.length) {
+    noteBox.innerHTML = `<strong>Observações:</strong>` + notes.map(n => `<div style="margin-top:4px">${n}</div>`).join('');
+    noteBox.classList.remove('hidden');
+  } else {
+    noteBox.classList.add('hidden');
+  }
+
+  document.getElementById('results').classList.remove('hidden');
+  document.getElementById('results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function calcMacros(food, qty) {
+  const r = qty / 100;
+  return {
+    cal:  +(food.cal  * r).toFixed(1),
+    prot: +(food.prot * r).toFixed(1),
+    carb: +(food.carb * r).toFixed(1),
+    fat:  +(food.fat  * r).toFixed(1),
+    fib:  +(food.fib  * r).toFixed(1),
+  };
+}
+
+function fmt(n) {
+  return n % 1 === 0 ? n.toFixed(0) : n.toFixed(1);
+}
+
+// Enter key on quantity triggers calc
+document.getElementById('qtyA').addEventListener('keydown', e => {
+  if (e.key === 'Enter') calculate();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeWater(); closeHB(); closePlan(); }
+});
+
+// ── Tema claro / escuro ──────────────────────────────────────
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('nd-theme', next);
+}
+
+(function () {
+  const saved = localStorage.getItem('nd-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('themeToggle').textContent = saved === 'dark' ? '☀️' : '🌙';
+  });
+})();
+
+// ── Sugestão de Refeições ────────────────────────────────────────
+
+// Alimentos práticos e de fácil acesso nos supermercados brasileiros
+const PLAN_NAMES = new Set([
+  // Proteínas
+  'Peito de frango grelhado', 'Coxa de frango assada', 'Atum em água (lata)',
+  'Ovo inteiro cozido', 'Clara de ovo cozida', 'Whey protein', 'Patinho bovino grelhado',
+  'Carne moída (patinho)', 'Filé de tilápia grelhado', 'Sardinha em lata (água)',
+  'Alcatra grelhada', 'Presunto cozido', 'Lombo suíno assado',
+  // Carboidratos
+  'Arroz branco cozido', 'Arroz integral cozido',
+  'Batata doce cozida', 'Batata inglesa cozida', 'Batata baroa cozida',
+  'Mandioca cozida', 'Macarrão cozido',
+  'Pão integral', 'Pão francês', 'Tapioca (goma)', 'Aveia em flocos',
+  'Feijão cozido', 'Feijão preto cozido', 'Grão de bico cozido', 'Cuscuz cozido', 'Milho cozido',
+  // Gorduras
+  'Azeite de oliva',
+  // Verduras
+  'Alface', 'Tomate', 'Brócolis cozido', 'Cenoura cozida', 'Abobrinha cozida',
+  'Chuchu cozido', 'Pepino', 'Repolho cozido', 'Espinafre cozido',
+  'Vagem cozida', 'Beterraba cozida', 'Couve refogada',
+  // Frutas
+  'Banana prata', 'Maçã', 'Laranja', 'Mamão papaia', 'Morango',
+  'Melancia', 'Uva', 'Manga', 'Abacaxi',
+  // Laticínios
+  'Iogurte natural desnatado', 'Iogurte grego natural', 'Queijo cottage',
+  'Leite desnatado', 'Leite integral', 'Queijo minas frescal',
+]);
+
+const PLAN_DB = DB.filter(f => PLAN_NAMES.has(f.name));
+
+function catFood(f) {
+  const n = f.name.toLowerCase();
+  // Proteínas matinais: ovos, atum e whey (comuns no café da manhã brasileiro)
+  if (/\bovo\b|clara de ovo/.test(n)) return 'proteina_cafe';
+  if (/atum|whey/.test(n))            return 'proteina_cafe';
+  // Gorduras saudáveis
+  if (/azeite/.test(n)) return 'gordura';
+  // Proteínas de almoço/jantar: carnes, frango, peixes
+  if (/frango|patinho|alcatra|tilápia|sardinha|presunto|carne moída|lombo suíno/.test(n)) return 'proteina_refeicao';
+  // Laticínios: iogurte, cottage, queijo — lanches e café
+  if (/iogurte natural|iogurte grego|cottage|queijo minas|leite desnatado|leite integral/.test(n)) return 'laticinios';
+  // Leguminosas: apenas almoço/jantar
+  if (/feijão|grão de bico/.test(n)) return 'leguminosa';
+  // Carboidratos matinais: pão, tapioca, aveia, cuscuz
+  if (/tapioca|aveia|pão|cuscuz/.test(n)) return 'graos_cafe';
+  // Carboidratos de refeição: arroz, batata, macarrão, mandioca
+  if (/arroz|macarrão|batata|mandioca|milho cozido/.test(n)) return 'graos_refeicao';
+  // Frutas e verduras
+  if (/banana|maçã|laranja|mamão|morango|melancia|uva|manga|abacaxi/.test(n)) return 'fruta';
+  if (/brócolis|alface|tomate|cenoura|chuchu|abobrinha|espinafre|repolho|pepino|vagem|beterraba|couve/.test(n)) return 'verdura';
+  return null;
+}
+
+// Templates de combinações coerentes — cada entrada é [pool1, pool2, ...]
+// pool = string (categoria) | string[] (lista de categorias) | string[] com nomes de alimentos
+
+// ── Proteínas por contexto ──────────────────────────────────
+// Só carnes/frango/peixe grelhados/assados aparecem em refeições quentes
+const P_FRANGO   = ['Peito de frango grelhado','Coxa de frango assada'];
+const P_BOVINA   = ['Patinho bovino grelhado','Alcatra grelhada','Carne moída (patinho)'];
+const P_PEIXE    = ['Filé de tilápia grelhado'];
+const P_SUINO    = ['Lombo suíno assado'];
+const P_QUENTE   = [...P_FRANGO,...P_BOVINA,...P_PEIXE,...P_SUINO];
+// Proteínas de café/lanche (ovos, atum, whey, frios)
+const P_OVO      = ['Ovo inteiro cozido','Clara de ovo cozida'];
+const P_FRIOS    = ['Presunto cozido','Atum em água (lata)','Sardinha em lata (água)'];
+// Leguminosas
+const L_FEIJAO   = ['Feijão cozido','Feijão preto cozido'];
+const L_GRAO     = ['Grão de bico cozido'];
+const L_TODAS    = [...L_FEIJAO,...L_GRAO];
+// Carboidratos de refeição
+const C_ARROZ    = ['Arroz branco cozido','Arroz integral cozido'];
+const C_BATATA   = ['Batata doce cozida','Batata inglesa cozida','Batata baroa cozida'];
+const C_RAIZ     = ['Batata doce cozida','Batata inglesa cozida','Batata baroa cozida','Mandioca cozida'];
+
+// ── Templates ────────────────────────────────────────────────
+
+const T_CAFE = [
+  // Aveia
+  [['Aveia em flocos'], ['Whey protein'], 'fruta'],
+  [['Aveia em flocos'], ['Iogurte natural desnatado','Iogurte grego natural'], 'fruta'],
+  [['Aveia em flocos'], P_OVO, 'fruta'],
+  // Pão
+  [['Pão integral','Pão francês'], P_OVO, 'fruta'],
+  [['Pão integral','Pão francês'], ['Queijo minas frescal','Queijo cottage'], 'fruta'],
+  [['Pão integral','Pão francês'], ['Presunto cozido','Queijo minas frescal'], 'fruta'],
+  [['Pão integral','Pão francês'], ['Atum em água (lata)','Sardinha em lata (água)'], 'fruta'],
+  [['Pão integral','Pão francês'], ['Iogurte grego natural','Queijo cottage'], 'fruta'],
+  // Tapioca
+  [['Tapioca (goma)'], P_OVO, 'fruta'],
+  [['Tapioca (goma)'], ['Atum em água (lata)'], 'fruta'],
+  [['Tapioca (goma)'], ['Queijo minas frescal','Queijo cottage'], 'fruta'],
+  [['Tapioca (goma)'], ['Iogurte grego natural'], 'fruta'],
+  // Cuscuz
+  [['Cuscuz cozido'], P_OVO, 'fruta'],
+  [['Cuscuz cozido'], ['Queijo minas frescal'], 'fruta'],
+];
+
+const T_LANCHE_MANHA = [
+  ['fruta', ['Iogurte natural desnatado','Iogurte grego natural']],
+  ['fruta', ['Queijo cottage']],
+  ['fruta', ['Whey protein']],
+  [['Pão integral'], ['Queijo minas frescal','Queijo cottage']],
+  [['Iogurte grego natural'], 'fruta'],
+];
+
+const T_LANCHE_MASSA = [
+  [['Aveia em flocos'], ['Whey protein']],
+  [['Tapioca (goma)'], ['Whey protein']],
+  [['Tapioca (goma)'], ['Iogurte grego natural']],
+  [['Pão integral','Pão francês'], P_OVO],
+  [['Pão integral','Pão francês'], ['Atum em água (lata)']],
+  [['Aveia em flocos'], ['Iogurte grego natural']],
+];
+
+// Almoço — proteínas quentes apenas, combinações culturalmente coerentes
+const T_ALMOCO = [
+  // Frango + Arroz + Feijão + Verdura + Azeite (clássico)
+  [C_ARROZ, P_FRANGO, L_FEIJAO, 'verdura', 'gordura'],
+  [C_ARROZ, P_FRANGO, L_FEIJAO, 'verdura', 'gordura'],
+  // Carne bovina + Arroz + Feijão + Verdura + Azeite
+  [C_ARROZ, P_BOVINA, L_FEIJAO, 'verdura', 'gordura'],
+  // Tilápia + Arroz + Verdura + Azeite (peixe combina menos com feijão)
+  [C_ARROZ, P_PEIXE, 'verdura', 'gordura'],
+  // Frango + Batata/Raiz + Verdura + Azeite
+  [C_RAIZ, P_FRANGO, 'verdura', 'gordura'],
+  // Carne + Batata + Verdura + Azeite
+  [C_BATATA, P_BOVINA, 'verdura', 'gordura'],
+  // Macarrão + Carne moída + Verdura + Azeite (estilo bolonhesa)
+  [['Macarrão cozido'], ['Carne moída (patinho)'], 'verdura', 'gordura'],
+  // Macarrão + Frango + Verdura + Azeite
+  [['Macarrão cozido'], P_FRANGO, 'verdura', 'gordura'],
+  // Lombo + Arroz + Feijão + Verdura + Azeite
+  [C_ARROZ, P_SUINO, L_FEIJAO, 'verdura', 'gordura'],
+  // Frango + Arroz + Grão de bico + Verdura + Azeite (variação)
+  [C_ARROZ, P_FRANGO, L_GRAO, 'verdura', 'gordura'],
+  // Mandioca + Frango + Verdura + Azeite
+  [['Mandioca cozida'], P_FRANGO, 'verdura', 'gordura'],
+];
+
+// Jantar emagrecer — foco em proteína + verdura, carbo menor ou sem
+const T_JANTAR_EMAGR = [
+  // Low-carb: só proteína + verdura + azeite
+  [P_FRANGO, 'verdura', 'gordura'],
+  [P_PEIXE, 'verdura', 'gordura'],
+  [P_BOVINA, 'verdura', 'gordura'],
+  // Com batata doce (carbo de baixo IG)
+  [['Batata doce cozida'], P_FRANGO, 'verdura', 'gordura'],
+  [['Batata doce cozida'], P_PEIXE, 'verdura', 'gordura'],
+  // Arroz integral + frango/peixe + verdura
+  [['Arroz integral cozido'], P_FRANGO, 'verdura', 'gordura'],
+  [['Arroz integral cozido'], P_PEIXE, 'verdura', 'gordura'],
+  // Prato completo mas sem repetir o almoço
+  [C_ARROZ, P_FRANGO, L_FEIJAO, 'verdura', 'gordura'],
+  [C_ARROZ, P_BOVINA, 'verdura', 'gordura'],
+];
+
+// Jantar manter/massa — prato completo
+const T_JANTAR = [
+  [C_ARROZ, P_FRANGO, L_FEIJAO, 'verdura', 'gordura'],
+  [C_ARROZ, P_BOVINA, L_FEIJAO, 'verdura', 'gordura'],
+  [C_ARROZ, P_PEIXE, 'verdura', 'gordura'],
+  [C_ARROZ, P_SUINO, L_FEIJAO, 'verdura', 'gordura'],
+  [C_RAIZ, P_FRANGO, 'verdura', 'gordura'],
+  [C_BATATA, P_BOVINA, 'verdura', 'gordura'],
+  [['Macarrão cozido'], ['Carne moída (patinho)'], 'verdura', 'gordura'],
+  [['Macarrão cozido'], P_FRANGO, 'verdura', 'gordura'],
+  [C_ARROZ, P_FRANGO, L_GRAO, 'verdura', 'gordura'],
+];
+
+const T_PRETREINO = [
+  [['Aveia em flocos'], ['Banana prata','Manga','Melancia','Maçã']],
+  [['Tapioca (goma)'], ['Banana prata','Manga','Laranja']],
+  [['Aveia em flocos'], ['Whey protein']],
+  [C_ARROZ, 'fruta'],
+];
+
+const T_CEIA_MANTER = [
+  [['Iogurte natural desnatado','Iogurte grego natural']],
+  [['Queijo cottage']],
+  [['Iogurte grego natural']],
+];
+
+const T_CEIA_MASSA = [
+  [['Whey protein'], ['Iogurte natural desnatado','Iogurte grego natural']],
+  [['Whey protein'], ['Queijo cottage']],
+  [['Clara de ovo cozida'], ['Queijo cottage','Iogurte grego natural']],
+];
+
+const T_LANCHE = [
+  // Fruta + laticínio
+  ['fruta', ['Iogurte natural desnatado','Iogurte grego natural']],
+  ['fruta', ['Queijo cottage']],
+  ['fruta', ['Whey protein']],
+  // Pão + proteína/laticínio
+  [['Pão integral','Pão francês'], ['Queijo minas frescal','Queijo cottage']],
+  [['Pão integral','Pão francês'], ['Presunto cozido','Queijo minas frescal']],
+  [['Pão integral','Pão francês'], ['Atum em água (lata)']],
+  // Tapioca + proteína
+  [['Tapioca (goma)'], ['Queijo minas frescal','Queijo cottage']],
+  [['Tapioca (goma)'], ['Whey protein']],
+  // Aveia + proteína
+  [['Aveia em flocos'], ['Whey protein']],
+  [['Aveia em flocos'], ['Iogurte natural desnatado','Iogurte grego natural']],
+];
+
+const PLANOS = {
+  emagrecer: [
+    { nome: '☀️ Café da manhã', pct: 0.25, templates: T_CAFE },
+    { nome: '🍽️ Almoço',        pct: 0.35, templates: T_ALMOCO },
+    { nome: '🥗 Lanche da tarde',pct: 0.15, templates: T_LANCHE },
+    { nome: '🌙 Jantar',        pct: 0.25, templates: T_JANTAR_EMAGR },
+  ],
+  manter: [
+    { nome: '☀️ Café da manhã', pct: 0.25, templates: T_CAFE },
+    { nome: '🍽️ Almoço',        pct: 0.35, templates: T_ALMOCO },
+    { nome: '🥗 Lanche da tarde',pct: 0.15, templates: T_LANCHE },
+    { nome: '🌙 Jantar',        pct: 0.25, templates: T_JANTAR },
+  ],
+  massa: [
+    { nome: '☀️ Café da manhã', pct: 0.25, templates: T_CAFE },
+    { nome: '🍽️ Almoço',        pct: 0.35, templates: T_ALMOCO },
+    { nome: '🥗 Lanche da tarde',pct: 0.15, templates: T_LANCHE_MASSA },
+    { nome: '🌙 Jantar',        pct: 0.25, templates: T_JANTAR },
+  ],
+};
+
+const LIMITES = {
+  proteina_cafe:    [60, 180],
+  proteina_refeicao:[100, 220],
+  graos_cafe:       [50, 180],
+  graos_refeicao:   [80, 200],
+  leguminosa:       [60, 150],
+  verdura:          [60, 280],
+  fruta:            [80, 200],
+  laticinios:       [80, 200],
+  gordura:          [10, 20],
+};
+
+const CAT_NAMES = new Set(['proteina_cafe','proteina_refeicao','graos_cafe','graos_refeicao','leguminosa','verdura','fruta','laticinios','gordura']);
+
+function pickFood(pool, used, db) {
+  const base = db || PLAN_DB;
+  let candidates;
+  if (Array.isArray(pool)) {
+    if (pool.every(p => CAT_NAMES.has(p))) {
+      // Array de categorias
+      candidates = base.filter(f => pool.includes(catFood(f)) && !used.has(f.name));
+    } else {
+      // Array de nomes explícitos de alimentos
+      candidates = pool.map(name => base.find(f => f.name === name)).filter(f => f && !used.has(f.name));
+    }
+  } else {
+    // Categoria única
+    candidates = base.filter(f => catFood(f) === pool && !used.has(f.name));
+  }
+  if (!candidates.length) return null;
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+function fmtQty(name, g, cal) {
+  const n = name.toLowerCase();
+  let u = '';
+  if      (/clara de ovo/.test(n))  { const q = Math.max(1,Math.round(g/33));  u = ` (${q} clara${q>1?'s':''})`; }
+  else if (/\bovo\b/.test(n))       { const q = Math.max(1,Math.round(g/50));  u = ` (${q} ovo${q>1?'s':''})`; }
+  else if (/whey/.test(n))          { const q = Math.max(1,Math.round(g/30));  u = ` (${q} dose${q>1?'s':''})`; }
+  else if (/pão francês/.test(n))        { const q = Math.max(1,Math.round(g/50));  u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/pão de hambúrguer/.test(n))  { const q = Math.max(1,Math.round(g/50));  u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/pão (integral|branco)/.test(n)) { const q = Math.max(1,Math.round(g/25));  u = ` (${q} fatia${q>1?'s':''})`; }
+  else if (/banana/.test(n))        { const q = Math.max(1,Math.round(g/80));  u = ` (${q} banana${q>1?'s':''})`; }
+  else if (/maçã/.test(n))          { const q = Math.max(1,Math.round(g/130)); u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/laranja/.test(n))       { const q = Math.max(1,Math.round(g/130)); u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/morango/.test(n))       { const q = Math.max(1,Math.round(g/15));  u = ` (${q} unidade${q>1?'s':''})`; }
+  else if (/azeite/.test(n))        { const q = Math.max(1,Math.round(g/12));  u = ` (${q} col. sopa)`; }
+  return `${g}g${u} · ${cal} kcal`;
+}
+
+function getPlanDb() {
+  const isVeg      = document.getElementById('r-veg').checked;
+  const semGluten  = document.getElementById('r-gluten').checked;
+  const semLactose = document.getElementById('r-lactose').checked;
+  let db = PLAN_DB;
+  if (isVeg)      db = db.filter(f => !/frango|atum|sardinha|patinho|alcatra|carne moída|presunto|tilápia|lombo suíno/.test(f.name.toLowerCase()));
+  if (semGluten)  db = db.filter(f => !/pão|macarrão/.test(f.name.toLowerCase()));
+  if (semLactose) db = db.filter(f => catFood(f) !== 'laticinios');
+  return db;
+}
+
+
+function generatePlan() {
+  const objetivo  = document.getElementById('p-objetivo').value;
+  const calDia    = parseFloat(document.getElementById('p-cal').value);
+  if (!objetivo) { alert('Selecione o objetivo.'); return; }
+  if (!calDia || calDia < 800 || calDia > 6000) {
+    alert('Informe um valor entre 800 e 6000 kcal.');
+    return;
+  }
+
+  const db = getPlanDb();
+  const isVeg      = document.getElementById('r-veg').checked;
+  const semGluten  = document.getElementById('r-gluten').checked;
+  const semLactose = document.getElementById('r-lactose').checked;
+  const restricoes = [isVeg && 'vegetariano', semGluten && 'sem glúten', semLactose && 'sem lactose'].filter(Boolean);
+
+  const plano = PLANOS[objetivo];
+  const used  = new Set();
+  let totalCal = 0, totalProt = 0, totalCarb = 0, totalFat = 0;
+  let html = '';
+
+  for (const ref of plano) {
+    const refTarget  = calDia * ref.pct;
+    const pools      = ref.templates
+      ? ref.templates[Math.floor(Math.random() * ref.templates.length)]
+      : ref.slots;
+    const calPerSlot = refTarget / pools.length;
+    const items      = [];
+    let refCalReal   = 0;
+
+    for (const pool of pools) {
+      const food = pickFood(pool, used, db);
+      if (!food) continue;
+      const foodCat = catFood(food);
+      if (foodCat !== 'gordura') used.add(food.name);
+
+      const [mn, mx] = LIMITES[foodCat] || [30, 200];
+      let g = Math.round((calPerSlot / food.cal) * 100);
+      g = Math.min(Math.max(g, mn), mx);
+
+      const fac  = g / 100;
+      const cal  = Math.round(food.cal  * fac);
+      const prot = +(food.prot * fac).toFixed(1);
+      const carb = +(food.carb * fac).toFixed(1);
+      const fat  = +(food.fat  * fac).toFixed(1);
+      refCalReal += cal;
+      totalCal   += cal;
+      totalProt  += prot;
+      totalCarb  += carb;
+      totalFat   += fat;
+      items.push({ name: food.name, g, cal, prot, carb, fat, calTarget: calPerSlot });
+    }
+
+    html += `<div class="meal-card">
+      <div class="meal-title">
+        <span>${ref.nome}</span>
+        <span class="meal-kcal">${refCalReal} kcal</span>
+        <button class="btn-rm-meal" onclick="removeMeal(this)">Excluir refeição</button>
+      </div>
+      ${items.map(it => `<div class="meal-item"
+          data-target-cal="${Math.round(it.calTarget)}"
+          data-actual-cal="${it.cal}"
+          data-actual-prot="${it.prot}"
+          data-actual-carb="${it.carb}"
+          data-actual-fat="${it.fat}"
+          data-food-name="${it.name}">
+          <div class="meal-item-ac">
+            <input type="text" class="meal-item-input" value="${it.name}" autocomplete="off" spellcheck="false">
+            <div class="meal-item-dd dropdown"></div>
+          </div>
+          <span class="meal-item-qty">${fmtQty(it.name, it.g, it.cal)}</span>
+          <button class="btn-rm-food" onclick="removeFood(this)">×</button>
+        </div>`).join('')}
+      <button class="btn-add-food" onclick="addFood(this)">＋ Alimento</button>
+    </div>`;
+  }
+
+  const notaRestricoes = restricoes.length
+    ? `<div style="font-size:.75rem;opacity:.8;margin-top:6px">Cardápio adaptado: ${restricoes.join(', ')}</div>`
+    : '';
+
+  html += `<button class="btn-add-meal" onclick="addMeal()">＋ Adicionar refeição</button>`;
+  html += `<div class="plan-total">
+    <span class="plan-total-kcal">Total do dia: ${totalCal} kcal</span>
+    <div class="plan-macros">
+      <span>Proteína ${totalProt.toFixed(0)}g</span>
+      <span>Carb ${totalCarb.toFixed(0)}g</span>
+      <span>Gordura ${totalFat.toFixed(0)}g</span>
+    </div>
+    ${notaRestricoes}
+  </div>`;
+
+  const box = document.getElementById('planResult');
+  box.innerHTML = html;
+  box.dataset.targetTotal = totalCal;
+  box.querySelectorAll('.meal-item-input').forEach(inp => {
+    setupPlanItemAC(inp, inp.nextElementSibling);
+  });
+  box.classList.remove('hidden');
+  document.getElementById('btnAnalyzePlan').classList.remove('hidden');
+  document.getElementById('analysisPanel').classList.add('hidden');
+  document.getElementById('btnPdf').classList.remove('hidden');
+  document.getElementById('btnClosePlan').classList.remove('hidden');
+}
+
+function openPlan() {
+  document.getElementById('planModal').classList.remove('hidden');
+  document.getElementById('planResult').classList.add('hidden');
+  document.getElementById('analysisPanel').classList.add('hidden');
+  document.getElementById('btnAnalyzePlan').classList.add('hidden');
+  document.getElementById('btnPdf').classList.add('hidden');
+  document.getElementById('btnClosePlan').classList.add('hidden');
+}
+function closePlan() { document.getElementById('planModal').classList.add('hidden'); }
+function closePlanOnBg(e) { if (e.target.id === 'planModal') closePlan(); }
+
+function showSwapTip(item, oldFood, newFood, oldG, newG) {
+  document.querySelectorAll('.swap-tip').forEach(el => el.remove());
+  if (!oldFood || !oldG) return;
+  const protDiff = +((newFood.prot * newG / 100) - (oldFood.prot * oldG / 100)).toFixed(1);
+  const fibDiff  = +((newFood.fib  * newG / 100) - (oldFood.fib  * oldG / 100)).toFixed(1);
+  const parts = [];
+  if (Math.abs(protDiff) >= 0.5) parts.push(`${protDiff > 0 ? '+' : ''}${protDiff}g prot.`);
+  if (Math.abs(fibDiff)  >= 0.3) parts.push(`${fibDiff  > 0 ? '+' : ''}${fibDiff}g fibra`);
+  if (!parts.length) return;
+  const tip = document.createElement('div');
+  tip.className = 'swap-tip';
+  tip.textContent = parts.join(' · ');
+  item.after(tip);
+  setTimeout(() => tip.remove(), 3500);
+}
+
+function analyzePlan() {
+  const calDia   = parseFloat(document.getElementById('p-cal').value) || 0;
+  const objetivo = document.getElementById('p-objetivo').value;
+  let totalProt = 0, totalCarb = 0, totalFat = 0, totalCal = 0, totalFib = 0;
+
+  document.querySelectorAll('#planResult .meal-item').forEach(item => {
+    const cal  = parseInt(item.dataset.actualCal  || 0);
+    const prot = parseFloat(item.dataset.actualProt || 0);
+    const carb = parseFloat(item.dataset.actualCarb || 0);
+    const fat  = parseFloat(item.dataset.actualFat  || 0);
+    const name = item.querySelector('.meal-item-input')?.value || '';
+    const food = DB.find(f => f.name === name);
+    if (food && cal && food.cal) {
+      const g = Math.round(cal / food.cal * 100);
+      totalFib += food.fib * g / 100;
+    }
+    totalCal  += cal;
+    totalProt += prot;
+    totalCarb += carb;
+    totalFat  += fat;
+  });
+  totalFib = +totalFib.toFixed(1);
+
+  const tips = [];
+  const protPct = totalCal ? Math.round(totalProt * 4 / totalCal * 100) : 0;
+  const protGoals = { emagrecer: [25, 35], manter: [20, 30], massa: [25, 35] };
+  const [pMin, pMax] = protGoals[objetivo] || [20, 35];
+  const objLabel = { emagrecer: 'emagrecer', manter: 'manter peso', massa: 'ganhar massa' }[objetivo] || objetivo;
+
+  if (protPct < pMin) {
+    tips.push({ type: 'warn', text: `Proteína em ${protPct}% das calorias — o ideal para ${objLabel} é ${pMin}–${pMax}%. Considere adicionar frango, ovos ou atum.` });
+  } else if (protPct > pMax) {
+    tips.push({ type: 'info', text: `Proteína em ${protPct}% das calorias — acima do esperado (${pMin}–${pMax}%). Pode aumentar um pouco os carboidratos para mais energia.` });
+  } else {
+    tips.push({ type: 'good', text: `Proteína em ${protPct}% das calorias — distribuição ideal para ${objLabel}.` });
+  }
+
+  if (totalFib < 20) {
+    tips.push({ type: 'warn', text: `Fibras: ${totalFib}g/dia — abaixo da meta (≥25g). Adicione mais verduras, feijão, lentilha ou frutas para melhorar saciedade e saúde intestinal.` });
+  } else if (totalFib >= 25) {
+    tips.push({ type: 'good', text: `Fibras: ${totalFib}g/dia — meta atingida (≥25g). Ótimo para saciedade e saúde intestinal.` });
+  } else {
+    tips.push({ type: 'info', text: `Fibras: ${totalFib}g/dia — próximo da meta (25g). Uma porção extra de verdura ou leguminosa completa o dia.` });
+  }
+
+  const fatPct = totalCal ? Math.round(totalFat * 9 / totalCal * 100) : 0;
+  if (fatPct > 40) {
+    tips.push({ type: 'warn', text: `Gorduras em ${fatPct}% das calorias — acima do recomendado (20–35%). Revise o uso de azeite ou alimentos gordurosos no plano.` });
+  } else if (fatPct < 15) {
+    tips.push({ type: 'warn', text: `Gorduras em ${fatPct}% das calorias — muito baixo. Gorduras saudáveis (azeite, ovos, abacate) são essenciais para hormônios e absorção de vitaminas.` });
+  }
+
+  if (calDia) {
+    const diff = totalCal - calDia;
+    const absDiff = Math.abs(diff);
+    if (absDiff > 150) {
+      tips.push({ type: 'info', text: `Total do plano: ${totalCal} kcal vs meta de ${calDia} kcal (${diff > 0 ? '+' : ''}${diff} kcal). Ajuste as porções clicando nos alimentos.` });
+    } else {
+      tips.push({ type: 'good', text: `Total de ${totalCal} kcal bem alinhado com a meta de ${calDia} kcal.` });
+    }
+  }
+
+  const icon = { good: '✓', warn: '⚠', info: 'ℹ' };
+  const panel = document.getElementById('analysisPanel');
+  panel.innerHTML = `
+    <div class="analysis-header">
+      <span>Análise Nutricional</span>
+      <button onclick="document.getElementById('analysisPanel').classList.add('hidden')">×</button>
+    </div>
+    ${tips.map(t => `<div class="tip-item tip-${t.type}">
+      <span class="tip-icon">${icon[t.type]}</span>
+      <span class="tip-text">${t.text}</span>
+    </div>`).join('')}
+  `;
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function printPlan() {
+  if (!window.jspdf) { alert('jsPDF não carregado. Tente novamente.'); return; }
+  const { jsPDF } = window.jspdf;
+
+  const objetivo = document.getElementById('p-objetivo').value;
+  const calMeta  = document.getElementById('p-cal').value;
+  const objLabel = { emagrecer: 'Emagrecer', manter: 'Manter peso', massa: 'Ganhar massa' }[objetivo] || objetivo;
+
+  const doc  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pw   = 210;
+  const mg   = 14;
+  const cw   = pw - mg * 2;
+  let y      = 0;
+
+  // ── Cabeçalho ────────────────────────────────────────────
+  doc.setFillColor(11, 7, 24);
+  doc.rect(0, 0, pw, 18, 'F');
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(98, 200, 35);
+  doc.text('NUNZIO', mg, 11);
+  doc.setTextColor(255, 255, 255);
+  doc.text('DIET', mg + 25, 11);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(180, 170, 210);
+  doc.text(`${objLabel}  ·  ${calMeta} kcal/dia`, pw - mg, 11, { align: 'right' });
+  doc.setDrawColor(139, 92, 246);
+  doc.setLineWidth(0.4);
+  doc.line(0, 18, pw, 18);
+  y = 25;
+
+  // ── Refeições ─────────────────────────────────────────────
+  document.querySelectorAll('#planResult .meal-card').forEach(card => {
+    const nameEl = card.querySelector('.meal-title > span');
+    const kcalEl = card.querySelector('.meal-kcal');
+    if (!nameEl) return;
+
+    const items = [...card.querySelectorAll('.meal-item')].filter(it => {
+      return it.querySelector('.meal-item-input')?.value?.trim();
+    });
+    const blockH = 9 + items.length * 6 + 5;
+
+    if (y + blockH > 278) { doc.addPage(); y = 14; }
+
+    // Cabeçalho da refeição
+    doc.setFillColor(23, 15, 46);
+    doc.roundedRect(mg, y, cw, 8.5, 2, 2, 'F');
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(94, 234, 212);
+    doc.text(nameEl.textContent.trim().toUpperCase(), mg + 3.5, y + 5.6);
+    if (kcalEl) {
+      doc.setTextColor(167, 139, 250);
+      doc.text(kcalEl.textContent.trim(), mg + cw - 3.5, y + 5.6, { align: 'right' });
+    }
+    y += 10.5;
+
+    // Alimentos
+    items.forEach(item => {
+      const name = item.querySelector('.meal-item-input')?.value?.trim() || '';
+      const qty  = item.querySelector('.meal-item-qty')?.textContent?.trim() || '';
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(40, 40, 60);
+      doc.text(`• ${name}`, mg + 3, y);
+      doc.setTextColor(120, 115, 150);
+      doc.text(qty, mg + cw - 1, y, { align: 'right' });
+      y += 6;
+    });
+    y += 4;
+  });
+
+  // ── Total do dia ──────────────────────────────────────────
+  const kcalTotalEl = document.querySelector('#planResult .plan-total-kcal');
+  const macrosEl    = document.querySelector('#planResult .plan-macros');
+  if (kcalTotalEl) {
+    if (y + 16 > 278) { doc.addPage(); y = 14; }
+    doc.setFillColor(13, 110, 104);
+    doc.roundedRect(mg, y, cw, 14, 3, 3, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text(kcalTotalEl.textContent.trim(), pw / 2, y + 6, { align: 'center' });
+    if (macrosEl) {
+      const macros = [...macrosEl.querySelectorAll('span')].map(s => s.textContent.trim()).join('   ');
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(180, 230, 220);
+      doc.text(macros, pw / 2, y + 11.5, { align: 'center' });
+    }
+    y += 18;
+  }
+
+  // ── Rodapé ────────────────────────────────────────────────
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(160, 155, 185);
+  doc.text('Gerado por NunzioDiet · felipevadao.github.io/nunziodiet', pw / 2, 291, { align: 'center' });
+
+  // ── Salvar ────────────────────────────────────────────────
+  const fileName = 'plano-nutricional-nunziodiet.pdf';
+
+  // Capacitor nativo: compartilhar via Share API nativa
+  if (window.Capacitor?.isNativePlatform?.()) {
+    const base64 = doc.output('datauristring').split(',')[1];
+    window.Capacitor.Plugins.Filesystem.writeFile({
+      path: fileName,
+      data: base64,
+      directory: 'CACHE',
+    }).then(res => {
+      window.Capacitor.Plugins.Share.share({
+        title: 'Plano Nutricional NunzioDiet',
+        url: res.uri,
+      });
+    });
+  } else {
+    doc.save(fileName);
+  }
+}
+
+function setupPlanItemAC(inp, dd) {
+  let hi = -1;
+
+  inp.addEventListener('input', () => {
+    const q = inp.value.trim();
+    if (!q) { dd.classList.remove('open'); return; }
+
+    const matches = DB
+      .map(f => ({ f, s: fuzzyScore(f.name, q) }))
+      .filter(x => x.s < Infinity)
+      .sort((a, b) => a.s - b.s)
+      .slice(0, 8)
+      .map(x => x.f);
+
+    dd.innerHTML = matches.length
+      ? matches.map((f, i) =>
+          `<div class="dd-item" data-idx="${i}" data-name="${f.name}">
+            ${f.name}<span class="dd-cal">${f.cal} kcal / 100g</span>
+          </div>`).join('')
+      : `<div class="dd-empty">Nenhum alimento encontrado</div>`;
+
+    dd.querySelectorAll('.dd-item').forEach(el => {
+      el.addEventListener('mousedown', e => e.preventDefault());
+      el.addEventListener('click', () => {
+        const food = DB.find(f => f.name === el.dataset.name);
+        inp.value = el.dataset.name;
+        dd.classList.remove('open');
+        if (food) selectPlanFood(inp, food);
+      });
+    });
+    hi = -1;
+    dd.classList.add('open');
+  });
+
+  inp.addEventListener('keydown', e => {
+    const items = dd.querySelectorAll('.dd-item');
+    if (e.key === 'ArrowDown') { hi = Math.min(hi + 1, items.length - 1); items.forEach((el, i) => el.classList.toggle('hi', i === hi)); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { hi = Math.max(hi - 1, 0); items.forEach((el, i) => el.classList.toggle('hi', i === hi)); e.preventDefault(); }
+    else if (e.key === 'Enter' && hi >= 0) { items[hi]?.click(); }
+    else if (e.key === 'Escape') { dd.classList.remove('open'); }
+  });
+
+  inp.addEventListener('blur', () => setTimeout(() => dd.classList.remove('open'), 150));
+}
+
+function selectPlanFood(inp, food) {
+  const item   = inp.closest('.meal-item');
+  const isNew  = parseInt(item.dataset.actualCal || 0) === 0;
+  const oldCal = parseInt(item.dataset.actualCal || 0);
+  let g, actualCal;
+
+  const [mn, mx] = LIMITES[catFood(food)] || [30, 200];
+
+  if (isNew) {
+    g = Math.max(mn, 100);
+    actualCal = Math.round(food.cal * g / 100);
+  } else {
+    const oldFood = DB.find(f => f.name === (item.dataset.foodName || ''));
+    const oldG    = oldFood && oldCal && oldFood.cal ? Math.round(oldCal / oldFood.cal * 100) : 0;
+    g = Math.min(Math.max(Math.round(oldCal / food.cal * 100), mn), mx);
+    actualCal = Math.round(food.cal * g / 100);
+    showSwapTip(item, oldFood, food, oldG, g);
+  }
+
+  item.dataset.foodName = food.name;
+  const fac = g / 100;
+  item.dataset.actualCal  = actualCal;
+  item.dataset.actualProt = (food.prot * fac).toFixed(1);
+  item.dataset.actualCarb = (food.carb * fac).toFixed(1);
+  item.dataset.actualFat  = (food.fat  * fac).toFixed(1);
+  item.querySelector('.meal-item-qty').textContent = fmtQty(food.name, g, actualCal);
+
+  if (isNew) {
+    updateTargetTotal();
+  } else {
+    const delta = oldCal - actualCal;
+    if (delta !== 0) redistributeDelta(delta, item);
+  }
+  recalcTotals();
+}
+
+// Distribui `delta` kcal proporcionalmente entre todos os itens do plano (exceto excludeItem).
+// delta > 0 → outros recebem mais calorias (slot atual ficou com menos)
+// delta < 0 → outros perdem calorias (slot atual ficou com mais)
+function redistributeDelta(delta, excludeItem) {
+  if (!delta) return;
+
+  // Apenas itens com alimento reconhecido no DB e calorias > 0
+  const others = [...document.querySelectorAll('#planResult .meal-item')].filter(el => {
+    if (el === excludeItem) return false;
+    if (parseInt(el.dataset.actualCal || 0) <= 0) return false;
+    const name = el.querySelector('.meal-item-input')?.value;
+    return !!DB.find(f => f.name === name);
+  });
+  if (!others.length) return;
+
+  const othersTotal = others.reduce((s, el) => s + parseInt(el.dataset.actualCal), 0);
+  if (!othersTotal) return;
+
+  let remaining = delta;
+  others.forEach((el, i) => {
+    const oldCal = parseInt(el.dataset.actualCal);
+    // Último item absorve o resto para zerar drift de arredondamento
+    const adj  = (i === others.length - 1)
+      ? remaining
+      : Math.round(delta * (oldCal / othersTotal));
+    remaining -= adj;
+
+    const newCal = Math.max(1, oldCal + adj);
+    const food   = DB.find(f => f.name === el.querySelector('.meal-item-input').value);
+    const newG   = Math.max(1, Math.round(newCal / food.cal * 100));
+    const fac    = newG / 100;
+    const realCal = Math.round(food.cal * fac);
+    el.dataset.actualCal  = realCal;
+    el.dataset.actualProt = (food.prot * fac).toFixed(1);
+    el.dataset.actualCarb = (food.carb * fac).toFixed(1);
+    el.dataset.actualFat  = (food.fat  * fac).toFixed(1);
+    el.querySelector('.meal-item-qty').textContent = fmtQty(food.name, newG, realCal);
+  });
+}
+
+function recalcTotals() {
+  let dayCalTotal = 0, dayProtTotal = 0, dayCarbTotal = 0, dayFatTotal = 0;
+
+  document.querySelectorAll('#planResult .meal-card').forEach(card => {
+    let mealCal = 0;
+    card.querySelectorAll('.meal-item').forEach(item => {
+      const c = parseInt(item.dataset.actualCal || 0);
+      mealCal      += c;
+      dayCalTotal  += c;
+      dayProtTotal += parseFloat(item.dataset.actualProt || 0);
+      dayCarbTotal += parseFloat(item.dataset.actualCarb || 0);
+      dayFatTotal  += parseFloat(item.dataset.actualFat  || 0);
+    });
+    card.querySelector('.meal-kcal').textContent = mealCal + ' kcal';
+  });
+
+  const kcalEl = document.querySelector('#planResult .plan-total-kcal');
+  if (kcalEl) kcalEl.textContent = `Total do dia: ${dayCalTotal} kcal`;
+
+  const macrosEl = document.querySelector('#planResult .plan-macros');
+  if (macrosEl) macrosEl.innerHTML = `
+    <span>Proteína ${dayProtTotal.toFixed(0)}g</span>
+    <span>Carb ${dayCarbTotal.toFixed(0)}g</span>
+    <span>Gordura ${dayFatTotal.toFixed(0)}g</span>`;
+}
+
+function updateTargetTotal() {
+  let total = 0;
+  document.querySelectorAll('#planResult .meal-item').forEach(item => {
+    total += parseInt(item.dataset.actualCal || 0);
+  });
+  document.getElementById('planResult').dataset.targetTotal = total;
+}
+
+function removeFood(btn) {
+  btn.closest('.meal-item').remove();
+  updateTargetTotal();
+  recalcTotals();
+}
+
+function addFood(btn) {
+  const card = btn.closest('.meal-card');
+  const div = document.createElement('div');
+  div.className = 'meal-item';
+  div.dataset.targetCal   = '0';
+  div.dataset.actualCal   = '0';
+  div.dataset.actualProt  = '0';
+  div.dataset.actualCarb  = '0';
+  div.dataset.actualFat   = '0';
+  div.innerHTML = `
+    <div class="meal-item-ac">
+      <input type="text" class="meal-item-input" placeholder="Digitar alimento..." autocomplete="off" spellcheck="false">
+      <div class="meal-item-dd dropdown"></div>
+    </div>
+    <span class="meal-item-qty"></span>
+    <button class="btn-rm-food" onclick="removeFood(this)">×</button>`;
+  btn.before(div);
+  const inp = div.querySelector('.meal-item-input');
+  setupPlanItemAC(inp, inp.nextElementSibling);
+  inp.focus();
+}
+
+function removeMeal(btn) {
+  btn.closest('.meal-card').remove();
+  updateTargetTotal();
+  recalcTotals();
+}
+
+function addMeal() {
+  const planResult = document.getElementById('planResult');
+  const addMealBtn = planResult.querySelector('.btn-add-meal');
+  const card = document.createElement('div');
+  card.className = 'meal-card';
+  card.innerHTML = `
+    <div class="meal-title">
+      <input class="meal-name-input" type="text" placeholder="Nome da refeição" value="🍴 Nova refeição">
+      <span class="meal-kcal">0 kcal</span>
+      <button class="btn-rm-meal" onclick="removeMeal(this)" title="Remover refeição">×</button>
+    </div>
+    <button class="btn-add-food" onclick="addFood(this)">＋ Alimento</button>`;
+  addMealBtn.before(card);
+}
+
+// ── Calculadora de Harris-Benedict ──────────────────────────────
+function openHB() {
+  const wPeso   = document.getElementById('w-peso').value;
+  const wAltura = document.getElementById('w-altura').value;
+  const wIdade  = document.getElementById('w-idade').value;
+  if (wPeso)   document.getElementById('h-peso').value   = wPeso;
+  if (wAltura) document.getElementById('h-altura').value = wAltura;
+  if (wIdade)  document.getElementById('h-idade').value  = wIdade;
+
+  document.getElementById('hbModal').classList.remove('hidden');
+  document.getElementById('hbResult').classList.add('hidden');
+  document.getElementById('btnCloseHB').classList.add('hidden');
+  document.getElementById('h-peso').focus();
+}
+
+function closeHB() { document.getElementById('hbModal').classList.add('hidden'); }
+function closeHBOnBg(e) { if (e.target.id === 'hbModal') closeHB(); }
+
+function calcHB() {
+  const sexo   = document.getElementById('h-sexo').value;
+  const peso   = parseFloat(document.getElementById('h-peso').value);
+  const altura = parseFloat(document.getElementById('h-altura').value);
+  const idade  = parseFloat(document.getElementById('h-idade').value);
+  const ativ   = parseFloat(document.getElementById('h-ativ').value);
+
+  if (!sexo) { alert('Selecione o sexo.'); return; }
+  if (!ativ) { alert('Selecione o nível de atividade.'); return; }
+  if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
+    alert('Preencha todos os campos corretamente.');
+    return;
+  }
+
+  // Harris-Benedict revisada (Mifflin-St Jeor é mais precisa, mas HB é a pedida)
+  const tmb = sexo === 'm'
+    ? Math.round(88.362 + 13.397 * peso + 4.799 * altura - 5.677 * idade)
+    : Math.round(447.593 + 9.247 * peso + 3.098 * altura - 4.330 * idade);
+
+  const get        = Math.round(tmb * ativ);
+  const emagrecer  = get - 500;
+  const ganharMassa = get + 400;
+
+  const box = document.getElementById('hbResult');
+  box.innerHTML = `
+    <div class="hb-stats">
+      <div class="hb-stat">
+        <div class="hb-stat-label">TMB (repouso)</div>
+        <div class="hb-stat-val">${tmb.toLocaleString('pt-BR')}</div>
+        <div class="hb-stat-unit">kcal/dia</div>
+      </div>
+      <div class="hb-stat hb-stat-main">
+        <div class="hb-stat-label">Gasto energético total (GET)</div>
+        <div class="hb-stat-val">${get.toLocaleString('pt-BR')}</div>
+        <div class="hb-stat-unit">kcal/dia com sua atividade</div>
+      </div>
+    </div>
+    <div class="hb-goals">
+      <div class="hb-goal" onclick="usarNoPlano(${emagrecer},'emagrecer')">
+        <span class="hb-goal-label">Emagrecer</span>
+        <span class="hb-goal-val">${emagrecer.toLocaleString('pt-BR')}</span>
+        <span class="hb-goal-hint">déficit de 500 kcal</span>
+        <span class="hb-goal-use">Usar no planejador →</span>
+      </div>
+      <div class="hb-goal" onclick="usarNoPlano(${get},'manter')">
+        <span class="hb-goal-label">Manter peso</span>
+        <span class="hb-goal-val">${get.toLocaleString('pt-BR')}</span>
+        <span class="hb-goal-hint">igual ao GET</span>
+        <span class="hb-goal-use">Usar no planejador →</span>
+      </div>
+      <div class="hb-goal" onclick="usarNoPlano(${ganharMassa},'massa')">
+        <span class="hb-goal-label">Ganhar massa</span>
+        <span class="hb-goal-val">${ganharMassa.toLocaleString('pt-BR')}</span>
+        <span class="hb-goal-hint">superávit de 400 kcal</span>
+        <span class="hb-goal-use">Usar no planejador →</span>
+      </div>
+    </div>`;
+  box.classList.remove('hidden');
+  document.getElementById('btnCloseHB').classList.remove('hidden');
+}
+
+function usarNoPlano(kcal, objetivo) {
+  closeHB();
+  document.getElementById('p-cal').value     = kcal;
+  document.getElementById('p-objetivo').value = objetivo;
+  document.getElementById('planResult').classList.add('hidden');
+  document.getElementById('planModal').classList.remove('hidden');
+}
+
+// ── Calculadora de Água ──────────────────────────────────────────
+function openWater() {
+  document.getElementById('waterModal').classList.remove('hidden');
+  document.getElementById('waterResult').classList.add('hidden');
+  document.getElementById('btnCloseWater').classList.add('hidden');
+  document.getElementById('w-peso').focus();
+}
+
+function closeWater() {
+  document.getElementById('waterModal').classList.add('hidden');
+}
+
+function closeWaterOnBg(e) {
+  if (e.target.id === 'waterModal') closeWater();
+}
+
+function calcWater() {
+  const peso  = parseFloat(document.getElementById('w-peso').value);
+  const altura = parseFloat(document.getElementById('w-altura').value);
+  const idade = parseFloat(document.getElementById('w-idade').value);
+
+  if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
+    alert('Preencha todos os campos corretamente.');
+    return;
+  }
+
+  let fator;
+  if      (idade <= 30) fator = 40;
+  else if (idade <= 55) fator = 35;
+  else if (idade <= 65) fator = 30;
+  else                  fator = 25;
+
+  const mlDia  = Math.round((peso * fator) / 50) * 50;
+  const litros = (mlDia / 1000).toFixed(2).replace('.', ',');
+  const copos  = Math.round(mlDia / 250);
+
+  const faixaLabel = idade <= 30 ? '18–30' : idade <= 55 ? '31–55' : idade <= 65 ? '56–65' : '65+';
+
+  const box = document.getElementById('waterResult');
+  box.innerHTML = `
+    <div class="water-result">
+      <div class="water-unit">Ingestão diária recomendada</div>
+      <div class="water-liters">${litros} L</div>
+      <div class="water-glasses">≈ ${copos} copos de 250 ml por dia</div>
+      <div class="water-tip">
+        <strong>Como distribuir:</strong> 1 copo ao acordar, 1 antes de cada refeição e 1 antes de dormir — complete o restante ao longo do dia.<br><br>
+        <strong>Fator aplicado:</strong> ${fator} ml/kg — faixa etária ${faixaLabel} anos (OMS)
+      </div>
+    </div>`;
+  box.classList.remove('hidden');
+  document.getElementById('btnCloseWater').classList.remove('hidden');
+}
+
+// ── Calculadora de IMC ───────────────────────────────────────────
+function openIMC() {
+  // Pré-preenche com dados da calculadora de água, se disponíveis
+  const wPeso   = document.getElementById('w-peso').value;
+  const wAltura = document.getElementById('w-altura').value;
+  const wIdade  = document.getElementById('w-idade').value;
+  if (wPeso)   document.getElementById('i-peso').value   = wPeso;
+  if (wAltura) document.getElementById('i-altura').value = wAltura;
+  if (wIdade)  document.getElementById('i-idade').value  = wIdade;
+
+  document.getElementById('imcModal').classList.remove('hidden');
+  document.getElementById('imcResult').classList.add('hidden');
+  document.getElementById('i-peso').focus();
+}
+
+function closeIMC() {
+  document.getElementById('imcModal').classList.add('hidden');
+}
+
+function closeIMCOnBg(e) {
+  if (e.target.id === 'imcModal') closeIMC();
+}
+
+function calcIMC() {
+  const peso   = parseFloat(document.getElementById('i-peso').value);
+  const altura = parseFloat(document.getElementById('i-altura').value);
+  const idade  = parseFloat(document.getElementById('i-idade').value);
+
+  if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
+    alert('Preencha todos os campos corretamente.');
+    return;
+  }
+
+  const altM = altura / 100;
+  const imc  = (peso / (altM * altM)).toFixed(1);
+
+  const box = document.getElementById('imcResult');
+  box.innerHTML = imcHTML(imc, altM);
+  box.classList.remove('hidden');
+}
+</script>
+  <div id="printArea" aria-hidden="true">
+    <div class="print-logo">Nunzio<span>Diet</span></div>
+    <div class="print-meta" id="printMeta"></div>
+    <div id="printContent"></div>
+  </div>
+
+  <!-- Capacitor Bridge — injetado automaticamente em builds nativos -->
+  <script>
+    // Disponibiliza Capacitor Plugins para printPlan()
+    // Em builds web este bloco é ignorado silenciosamente
+    if (window.Capacitor) {
+      const { Filesystem, Share } = window.Capacitor.Plugins;
+      window.CapFilesystem = Filesystem;
+      window.CapShare = Share;
+    }
+  </script>
+</body>
+</html>

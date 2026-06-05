@@ -1,6 +1,15 @@
 # ── Claude Code ──────────────────────────────────────────────────
 .claude/
 
+# ── Capacitor ─────────────────────────────────────────────────────
+# android/ e ios/ podem ser commitados (recomendado pelo Capacitor)
+# mas package-lock é suficiente para reproduzir node_modules
+.DS_Store
+android/.gradle
+android/app/build/
+android/build/
+ios/App/Pods/
+
 # ── Environment & Secrets ─────────────────────────────────────────
 .env
 .env.*
