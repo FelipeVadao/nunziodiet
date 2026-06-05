@@ -4,11 +4,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Single-file web app (`index.html`) — no build step, no dependencies, no server required. Open directly in a browser. Hosted on GitHub Pages at `felipevadao.github.io/nunziodiet`.
+Aplicativo de nutrição publicável como web, Android e iOS via Capacitor. Hospedado em `felipevadao.github.io/nunziodiet`.
+
+**Arquivo principal: `docs/index.html`** — nunca editar o `index.html` da raiz (desatualizado, mantido apenas por histórico git).
+
+## Estrutura do projeto
+
+```
+docs/                        ← webDir do Capacitor + source do GitHub Pages
+  index.html                 ← ARQUIVO PRINCIPAL (editar aqui)
+  jspdf.umd.min.js           ← PDF local, sem CDN
+  fonts/Orbitron.woff2       ← Fonte local, sem Google Fonts CDN
+android/                     ← Projeto Android Studio (gerado pelo Capacitor)
+capacitor.config.json        ← appId: com.nunziodiet.app, webDir: docs
+package.json                 ← @capacitor/core, android, ios, filesystem, share
+```
+
+### Workflow de edição
+
+```bash
+# 1. Editar docs/index.html
+# 2. Sincronizar com Android:
+npm run sync        # equivale a npx cap sync
+# 3. Rebuildar no Android Studio
+npx cap open android
+```
+
+Para iOS (requer Mac + Xcode): `npx cap add ios && npx cap open ios`
 
 ## Architecture
 
-Everything lives in `index.html`: `<style>` → `<body>` (HTML) → `<script>` (JS). No modules, no bundler.
+Everything lives in `docs/index.html`: `<style>` → `<body>` (HTML) → `<script>` (JS). No modules, no bundler.
 
 ### CSS
 
@@ -33,7 +59,7 @@ Mobile breakpoint is `@media (max-width: 520px)` with bottom-sheet modal pattern
 
 ### Typography
 
-The main CTA button uses **Orbitron** (Google Fonts, loaded via `<link>` in `<head>`), `font-size: 0.85rem`, `letter-spacing: 2px`. All other elements use the system font stack.
+The main CTA button uses **Orbitron** (`docs/fonts/Orbitron.woff2` — arquivo local, sem CDN), declarada via `@font-face` no topo do `<style>`. `font-size: 0.85rem`, `letter-spacing: 2px`. All other elements use the system font stack.
 
 ### Button structure
 
@@ -154,7 +180,7 @@ Called from `selectPlanFood()` on swaps. Computes protein and fiber deltas betwe
 
 ### PDF export
 
-`printPlan()` — syncs `.meal-item-input` value → attribute, clones `#planResult` into `#printArea`, calls `window.print()`. Print styles strip interactivity and hide dropdowns.
+`printPlan()` — gera PDF real via **jsPDF** (`docs/jspdf.umd.min.js`). Lê os dados do DOM (refeições, alimentos, quantidades, totais) e monta o layout programaticamente. Em ambiente nativo Capacitor usa `Filesystem` + `Share` para salvar e compartilhar o arquivo; em web usa `doc.save()` para download direto. `window.print()` não é mais usado.
 
 `#btnPdf`, `#btnAnalyzePlan`, and `#btnClosePlan` are hidden until `generatePlan()` succeeds.
 
