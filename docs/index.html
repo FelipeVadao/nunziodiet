@@ -940,6 +940,9 @@
       /* Impede zoom automático do iOS em campos de texto */
       input[type="text"], input[type="number"], select { font-size: 1rem !important; }
 
+      /* Menu hamburger — ocupa quase toda a largura no mobile */
+      #navMenu { left: 8px; right: 8px; min-width: unset; }
+
       /* Header */
       header { padding: 20px 16px 16px; }
       .logo { font-size: 2rem; }
@@ -1006,7 +1009,7 @@
 </head>
 <body>
 
-<header style="position:relative">
+<header style="position:sticky; top:0; z-index:100">
   <button class="home-btn" onclick="toggleMenu()" title="Menu">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
       <line x1="3" y1="6"  x2="21" y2="6"/>
