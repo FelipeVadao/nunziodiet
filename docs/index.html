@@ -782,9 +782,7 @@
     .home-btn:hover { background: rgba(0,0,0,.32); }
 
     #navMenu {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 12px;
+      position: fixed;
       z-index: 300;
       background: white;
       border-radius: 16px;
@@ -1787,7 +1785,22 @@ document.addEventListener('keydown', e => {
 
 // ── Tema claro / escuro ──────────────────────────────────────
 function toggleMenu() {
-  document.getElementById('navMenu').classList.toggle('hidden');
+  const menu = document.getElementById('navMenu');
+  const btn  = document.querySelector('.home-btn');
+  const rect = btn.getBoundingClientRect();
+  const isMobile = window.innerWidth <= 520;
+  if (isMobile) {
+    menu.style.top   = (rect.bottom + 6) + 'px';
+    menu.style.left  = '8px';
+    menu.style.right = '8px';
+    menu.style.minWidth = 'unset';
+  } else {
+    menu.style.top   = (rect.bottom + 6) + 'px';
+    menu.style.left  = rect.left + 'px';
+    menu.style.right = 'auto';
+    menu.style.minWidth = '260px';
+  }
+  menu.classList.toggle('hidden');
 }
 
 function navGoTo(feature) {
