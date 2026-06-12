@@ -896,6 +896,101 @@
       animation: up .2s ease, fadeout .3s ease 3.2s both;
     }
 
+    /* ── Minha Dieta — abas de importação ── */
+    .import-tabs {
+      display: flex; gap: 6px; margin: 14px 0 10px;
+    }
+    .import-tab {
+      flex: 1; padding: 8px 6px; border-radius: 10px; border: 1.5px solid var(--border);
+      background: transparent; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+      color: var(--text-muted); transition: background .15s, border-color .15s, color .15s;
+    }
+    .import-tab.active { background: var(--green-bg); border-color: var(--green); color: var(--green-xdark); }
+    .import-tab:hover:not(.active) { background: rgba(0,0,0,.04); }
+
+    .import-panel { margin-bottom: 8px; }
+    .import-hint {
+      font-size: .78rem; color: var(--text-muted); margin: 6px 0; line-height: 1.5;
+    }
+    .import-textarea {
+      width: 100%; min-height: 140px; resize: vertical;
+      border: 1.5px solid var(--border); border-radius: 12px;
+      padding: 10px 12px; font-size: .84rem; font-family: inherit; line-height: 1.6;
+      background: var(--green-bg); color: var(--text);
+      transition: border-color .2s;
+    }
+    .import-textarea:focus { outline: none; border-color: var(--green); }
+
+    .import-image-label {
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+      padding: 10px 14px; border: 1.5px dashed var(--border); border-radius: 12px;
+      font-size: .84rem; font-weight: 600; color: var(--text-muted);
+      transition: border-color .2s, color .2s;
+    }
+    .import-image-label:hover { border-color: #0369a1; color: #0369a1; }
+    .import-image-label input { display: none; }
+
+    .image-ref-wrap {
+      margin-top: 10px; border-radius: 12px; overflow: auto; max-height: 280px;
+      border: 1.5px solid var(--border);
+    }
+    .image-ref-wrap img { width: 100%; display: block; }
+
+    .md-clear-btn {
+      display: block; margin: 4px 0 0 auto;
+      padding: 4px 10px; border-radius: 8px; border: 1.5px solid #fca5a5;
+      background: transparent; color: #dc2626; font-size: .75rem; font-weight: 700;
+      cursor: pointer; transition: background .15s, color .15s;
+    }
+    .md-clear-btn:hover { background: #fef2f2; }
+
+    .md-cal-row {
+      display: flex; align-items: center; gap: 12px; margin: 12px 0 4px; flex-wrap: wrap;
+    }
+    .md-cal-row input { border: 1.5px solid var(--border); border-radius: 10px; padding: 7px 10px; }
+
+    .md-parse-preview {
+      margin-top: 10px; border: 1.5px solid var(--border); border-radius: 12px;
+      padding: 10px 12px; font-size: .82rem; max-height: 200px; overflow-y: auto;
+    }
+    .md-parse-meal { font-weight: 700; margin: 8px 0 4px; color: var(--text); }
+    .md-parse-meal:first-child { margin-top: 0; }
+    .md-parse-item { padding: 2px 0 2px 12px; display: flex; gap: 6px; align-items: baseline; }
+    .md-parse-item.unmatched { color: #f97316; }
+    .md-parse-item .parse-name { flex: 1; }
+    .md-parse-item .parse-qty  { font-size: .75rem; color: var(--text-muted); white-space: nowrap; }
+    .md-parse-item.unmatched .parse-qty { color: #fb923c; }
+
+    .meal-item.unmatched-food {
+      border-left: 3px solid #f97316; background: rgba(249,115,22,0.06);
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; top: 1.25rem; left: 50%; transform: translateX(-50%);
+      padding: .65rem 1.4rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+      z-index: 9999; pointer-events: none; white-space: nowrap;
+      animation: fadein .15s ease, fadeout .3s ease 2.7s forwards;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+    .toast-error   { background: #fef2f2; color: #dc2626; border: 1.5px solid #fca5a5; }
+    .toast-success { background: #f0fdf4; color: #15803d; border: 1.5px solid #86efac; }
+    .toast-confirm {
+      position: fixed; top: 1.25rem; left: 50%; transform: translateX(-50%);
+      padding: .65rem 1.2rem; border-radius: 12px; z-index: 9999;
+      display: flex; align-items: center; gap: .75rem;
+      font-size: 0.85rem; font-weight: 600; white-space: nowrap;
+      background: #fff7ed; color: #92400e; border: 1.5px solid #fcd34d;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12); animation: fadein .15s ease;
+    }
+    .toast-confirm-btn {
+      padding: .25rem .75rem; border-radius: 8px; border: none;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    }
+    .toast-confirm-yes { background: #ef4444; color: white; }
+    .toast-confirm-no  { background: #e5e7eb; color: #374151; }
+
     /* ── Botão fechar (rodapé do modal) ── */
     .btn-fechar {
       display: block; width: 100%; margin-top: 8px; padding: 12px;
@@ -910,6 +1005,26 @@
     [data-theme="dark"] .btn-pdf:hover { color: var(--charcoal); }
     [data-theme="dark"] .btn-fechar { border-color: #334155; color: #94a3b8; }
     [data-theme="dark"] .btn-fechar:hover { border-color: #94a3b8; color: #f1f5f9; }
+    [data-theme="dark"] .md-clear-btn { border-color: #dc2626; color: #f87171; }
+    [data-theme="dark"] .md-clear-btn:hover { background: rgba(220,38,38,0.1); }
+    [data-theme="dark"] .import-tab { border-color: rgba(139,92,246,0.2); color: #7c7a9c; }
+    [data-theme="dark"] .import-tab.active { background: rgba(98,200,35,0.08); border-color: var(--green); color: #86efac; }
+    [data-theme="dark"] .import-tab:hover:not(.active) { background: rgba(139,92,246,0.06); }
+    [data-theme="dark"] .import-textarea { background: rgba(11,7,24,0.8); border-color: rgba(139,92,246,0.2); color: #e8e8f0; }
+    [data-theme="dark"] .import-textarea:focus { border-color: rgba(139,92,246,0.6); }
+    [data-theme="dark"] .import-image-label { border-color: rgba(139,92,246,0.2); }
+    [data-theme="dark"] .import-image-label:hover { border-color: #38bdf8; color: #38bdf8; }
+    [data-theme="dark"] .image-ref-wrap { border-color: rgba(139,92,246,0.2); }
+    [data-theme="dark"] .md-parse-preview { background: rgba(11,7,24,0.5); border-color: rgba(139,92,246,0.2); }
+    [data-theme="dark"] .md-parse-meal { color: #e8e8f0; }
+    [data-theme="dark"] .md-parse-item { color: #c4b5fd; }
+    [data-theme="dark"] .md-parse-item.unmatched { color: #fb923c; }
+    [data-theme="dark"] .meal-item.unmatched-food { background: rgba(249,115,22,0.08); }
+
+    [data-theme="dark"] .toast-error   { background: #450a0a; color: #fca5a5; border-color: #dc2626; }
+    [data-theme="dark"] .toast-success { background: #052e16; color: #86efac; border-color: #16a34a; }
+    [data-theme="dark"] .toast-confirm { background: #422006; color: #fcd34d; border-color: #d97706; }
+    [data-theme="dark"] .toast-confirm-no { background: #374151; color: #e5e7eb; }
 
     /* ── Impressão / PDF ── */
     #printArea { display: none; }
@@ -1066,6 +1181,17 @@
         <span class="nav-sub">Cardápio diário personalizado</span>
       </div>
     </button>
+    <button class="nav-item" onclick="navGoTo('mydiet')">
+      <div class="nav-icon" style="background:#0369a1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+        </svg>
+      </div>
+      <div>
+        <span class="nav-label">Minha Dieta</span>
+        <span class="nav-sub">Dieta prescrita pelo nutricionista</span>
+      </div>
+    </button>
   </div>
 </header>
 
@@ -1188,7 +1314,7 @@
         </div>
       </div>
 
-      <button class="btn-calcwater" style="background:#0f766e;color:white" onclick="generatePlan()">Gerar cardápio</button>
+      <button id="btnGerarPlano" class="btn-calcwater" style="background:#0f766e;color:white" onclick="generatePlan()">Gerar cardápio</button>
       <div id="planResult" class="hidden plan-result"></div>
       <div id="analysisPanel" class="hidden analysis-panel"></div>
       <button id="btnAnalyzePlan" class="btn-analyze hidden" onclick="analyzePlan()">📊 Analisar plano</button>
@@ -1273,6 +1399,70 @@
 
       <div id="waterResult" class="hidden"></div>
       <button id="btnCloseWater" class="btn-fechar hidden" onclick="closeWater()">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Modal Minha Dieta -->
+  <div class="modal-bg hidden" id="myDietModal" onclick="closeMyDietOnBg(event)">
+    <div class="modal modal-wide">
+      <button class="modal-close" onclick="closeMyDiet()">×</button>
+      <div class="modal-title">📋 Minha Dieta</div>
+      <div class="modal-sub">Insira a dieta prescrita pelo nutricionista</div>
+      <button class="md-clear-btn" onclick="resetMyDiet()" title="Limpar tudo e recomeçar">🗑 Limpar dieta</button>
+
+      <!-- Abas de importação -->
+      <div class="import-tabs">
+        <button class="import-tab active" onclick="setImportTab('manual')">✏️ Digitar</button>
+        <button class="import-tab" onclick="setImportTab('text')">📄 Colar texto / PDF</button>
+        <button class="import-tab" onclick="setImportTab('image')">🖼️ Imagem</button>
+      </div>
+
+      <!-- Aba: Digitar -->
+      <div id="importPanelManual" class="import-panel">
+        <p class="import-hint">Use o botão <strong>＋ Adicionar refeição</strong> abaixo para montar a dieta manualmente. Os alimentos são pesquisados no mesmo banco de dados do app.</p>
+      </div>
+
+      <!-- Aba: Colar texto -->
+      <div id="importPanelText" class="import-panel hidden">
+        <textarea id="mdPasteText" class="import-textarea" placeholder="Cole o texto da prescrição aqui…
+
+Exemplo:
+Café da manhã
+- Frango cozido 150g
+- Arroz integral 2 col. sopa
+
+Almoço
+- Tilápia 200g
+- Batata doce 1 xícara"></textarea>
+        <p class="import-hint">💡 Para PDF: abra o arquivo, selecione todo o texto (Ctrl+A), copie (Ctrl+C) e cole aqui.</p>
+        <button class="btn-calcwater" style="background:#0369a1;color:white;margin-top:8px" onclick="parseDietTextAndPreview()">Interpretar texto</button>
+        <div id="mdParsePreview" class="hidden md-parse-preview"></div>
+        <button id="btnImportDiet" class="btn-calcwater hidden" style="background:#15803d;color:white;margin-top:6px" onclick="importParsedDiet()">Importar para a dieta</button>
+      </div>
+
+      <!-- Aba: Imagem -->
+      <div id="importPanelImage" class="import-panel hidden">
+        <label class="import-image-label">
+          <input type="file" id="mdImageInput" accept="image/*" onchange="handleMyDietImage(this)">
+          <span>Selecionar imagem da prescrição</span>
+        </label>
+        <p class="import-hint">A imagem aparece como referência enquanto você digita na aba <strong>Digitar</strong>.</p>
+        <div id="mdImagePreview" class="image-ref-wrap hidden"></div>
+      </div>
+
+      <!-- Meta calórica opcional -->
+      <div class="md-cal-row">
+        <label for="md-cal" style="font-size:.82rem;font-weight:600;color:var(--text-muted)">Alvo calórico diário (kcal) — opcional</label>
+        <input type="number" id="md-cal" min="800" max="6000" placeholder="Ex: 1800" style="width:140px">
+      </div>
+
+      <div id="myDietResult" class="hidden plan-result"></div>
+      <div id="myDietAnalysis" class="hidden analysis-panel"></div>
+
+      <button class="btn-add-meal" onclick="addMyDietMeal()" style="margin-top:12px">＋ Adicionar refeição</button>
+      <button id="btnAnalyzeMyDiet" class="btn-analyze hidden" onclick="analyzeMyDiet()">📊 Analisar dieta</button>
+      <button id="btnPdfMyDiet" class="btn-pdf hidden" onclick="printMyDiet()">⬇ Salvar como PDF</button>
+      <button id="btnCloseMyDiet" class="btn-fechar hidden" onclick="closeMyDiet()">Fechar</button>
     </div>
   </div>
 
@@ -1569,6 +1759,33 @@ const DB = [
   { name:"Vitamina de banana",        cal:90,  prot:3.5, carb:15.5, fat:1.8, fib:0.6 },
 ];
 
+// ── UI helpers
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+function showToast(msg, type = 'error') {
+  document.querySelectorAll('.toast').forEach(el => el.remove());
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3100);
+}
+
+function showConfirm(msg, onConfirm) {
+  document.querySelectorAll('.toast-confirm').forEach(el => el.remove());
+  const el = document.createElement('div');
+  el.className = 'toast-confirm';
+  el.innerHTML = `<span>${msg}</span>
+    <button class="toast-confirm-btn toast-confirm-yes">Sim</button>
+    <button class="toast-confirm-btn toast-confirm-no">Não</button>`;
+  document.body.appendChild(el);
+  el.querySelector('.toast-confirm-yes').addEventListener('click', () => { el.remove(); onConfirm(); });
+  el.querySelector('.toast-confirm-no').addEventListener('click', () => el.remove());
+}
+
 // ── Autocomplete
 function norm(s) {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -1612,7 +1829,7 @@ function setupAC(inputId, dropdownId) {
   const dd  = document.getElementById(dropdownId);
   let hi = -1, selected = null;
 
-  inp.addEventListener('input', () => {
+  inp.addEventListener('input', debounce(() => {
     const q = norm(inp.value.trim());
     selected = null;
     if (!q) { dd.classList.remove('open'); return; }
@@ -1644,7 +1861,7 @@ function setupAC(inputId, dropdownId) {
     }
     hi = -1;
     dd.classList.add('open');
-  });
+  }, 120));
 
   inp.addEventListener('keydown', e => {
     const items = dd.querySelectorAll('.dd-item');
@@ -1780,8 +1997,321 @@ document.getElementById('qtyA').addEventListener('keydown', e => {
 });
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeWater(); closeHB(); closePlan(); }
+  if (e.key === 'Escape') { closeWater(); closeHB(); closePlan(); closeMyDiet(); }
 });
+
+// ── Minha Dieta ──────────────────────────────────────────────
+
+// Tabela de conversão de unidades → gramas
+const UNIT_TO_G = {
+  'col. sopa': 15, 'colher de sopa': 15, 'colheres de sopa': 15, 'cs': 15,
+  'col. chá': 5,  'colher de chá': 5,   'colheres de chá': 5,   'cc': 5,
+  'xícara': 240,  'xicara': 240,  'xícaras': 240, 'xicaras': 240,
+  'copo': 200,    'copos': 200,
+  'porção': 100,  'porções': 100, 'porcao': 100, 'porcoes': 100,
+  'dose': 30,     'doses': 30,
+};
+
+// Conversão de "unidade/fatia" por tipo de alimento
+function unitToGrams(unit, foodName) {
+  const u = norm(unit);
+  // Primeiro tenta tabela fixa
+  const fixed = Object.entries(UNIT_TO_G).find(([k]) => norm(k) === u);
+  if (fixed) return fixed[1];
+
+  const fn = norm(foodName);
+  if (u.startsWith('unidade') || u === 'un' || u === 'u') {
+    if (fn.includes('ovo') || fn.includes('clara'))   return 50;
+    if (fn.includes('banana'))                         return 80;
+    if (fn.includes('maca') || fn.includes('maçã'))   return 130;
+    if (fn.includes('laranja'))                        return 130;
+    if (fn.includes('morango'))                        return 15;
+    if (fn.includes('pao') || fn.includes('pão'))      return 50;
+    return 100; // default
+  }
+  if (u.startsWith('fatia') || u.startsWith('fatias')) {
+    if (fn.includes('pao') || fn.includes('pão'))      return 25;
+    if (fn.includes('queijo'))                         return 20;
+    if (fn.includes('bolo'))                           return 80;
+    return 30;
+  }
+  if (u === 'ml' || u.startsWith('m')) return 1; // ml ≈ g para líquidos
+  if (u === 'kg')                      return 1000;
+  return null; // não reconhecido → null
+}
+
+// Parseia texto livre em array de refeições
+let _parsedMeals = [];
+
+function parseDietText(rawText) {
+  const lines = rawText.split('\n').map(l => l.trim()).filter(l => l && !/^[-—•]{2,}$/.test(l));
+  const meals = [];
+  let current = null;
+
+  // Regex para capturar quantidade + unidade ou só gramas
+  const QTY_RE = /(\d+(?:[,.]\d+)?)\s*(g\b|kg\b|ml\b|col\.?\s*sopa|col\.?\s*chá|colhe(?:r|res)\s*de\s*(?:sopa|chá)|xi[cç]aras?|copos?|unidades?|fatias?|dose[s]?|porç[oõ]es?|porcoes?|porcao|un\b|u\b|cs\b|cc\b)?/i;
+
+  for (const line of lines) {
+    const clean = line.replace(/^[-—•*]\s*/, '').trim();
+    const m = clean.match(QTY_RE);
+    const hasQty = m && m[1] && parseFloat(m[1]) > 0;
+
+    if (!hasQty) {
+      // Linha sem quantidade = título de refeição
+      const name = clean.replace(/[:–-]\s*\d.*$/, '').replace(/\d{1,2}[h:]\d{0,2}.*$/, '').trim();
+      if (name.length > 2 && name.length < 60) {
+        current = { nome: name, items: [] };
+        meals.push(current);
+      }
+    } else {
+      if (!current) { current = { nome: 'Refeição', items: [] }; meals.push(current); }
+
+      const qty     = parseFloat(m[1].replace(',', '.'));
+      const rawUnit = (m[2] || 'g').trim();
+      const foodRaw = clean.slice(0, clean.search(QTY_RE)).replace(/[:–-]\s*$/, '').trim() ||
+                      clean.replace(m[0], '').trim();
+      const foodName = foodRaw || clean;
+
+      // Converte para gramas
+      let g;
+      const unitLower = norm(rawUnit);
+      if (unitLower === 'g' || !rawUnit || unitLower === '') {
+        g = qty;
+      } else if (unitLower === 'kg') {
+        g = qty * 1000;
+      } else if (unitLower === 'ml') {
+        g = qty;
+      } else {
+        const converted = unitToGrams(rawUnit, foodName);
+        g = converted != null ? qty * converted : qty * 100;
+      }
+      g = Math.round(g);
+
+      // Fuzzy match contra DB
+      const scored = DB.map(f => ({ f, s: fuzzyScore(f.name, foodName) }))
+                       .filter(x => x.s < Infinity)
+                       .sort((a, b) => a.s - b.s);
+      const best = scored[0];
+      const matched = best && best.s < 3;
+      const food = matched ? best.f : null;
+
+      const unitConverted = unitLower !== 'g' && unitLower !== '';
+      if (food) {
+        const fac = g / 100;
+        current.items.push({
+          name: food.name, g,
+          cal:  Math.round(food.cal  * fac),
+          prot: +(food.prot * fac).toFixed(1),
+          carb: +(food.carb * fac).toFixed(1),
+          fat:  +(food.fat  * fac).toFixed(1),
+          matched: true, unitConverted,
+          rawLabel: unitConverted ? `${qty} ${rawUnit}` : null,
+        });
+      } else {
+        current.items.push({ name: foodName, g, cal: 0, prot: 0, carb: 0, fat: 0, matched: false, unitConverted });
+      }
+    }
+  }
+  return meals;
+}
+
+// Renderiza preview do parse na div de preview
+function parseDietTextAndPreview() {
+  const raw = document.getElementById('mdPasteText').value.trim();
+  if (!raw) { showToast('Cole o texto da prescrição primeiro.'); return; }
+  _parsedMeals = parseDietText(raw);
+  if (!_parsedMeals.length) { showToast('Nenhuma refeição identificada. Verifique o formato.'); return; }
+
+  const preview = document.getElementById('mdParsePreview');
+  let html = '';
+  let totalItems = 0;
+  _parsedMeals.forEach(meal => {
+    html += `<div class="md-parse-meal">${meal.nome}</div>`;
+    meal.items.forEach(it => {
+      totalItems++;
+      const cls = it.matched ? '' : ' unmatched';
+      const qtyLabel = it.rawLabel ? `${it.rawLabel} (≈${it.g}g)` : `${it.g}g`;
+      const warn = it.matched && it.unitConverted ? ' ≈' : '';
+      html += `<div class="md-parse-item${cls}">
+        <span class="parse-name">${it.matched ? it.name : `⚠ ${it.name}`}</span>
+        <span class="parse-qty">${qtyLabel}${it.matched ? ' · ' + it.cal + ' kcal' + warn : ' — não encontrado'}</span>
+      </div>`;
+    });
+  });
+
+  const unmatched = _parsedMeals.flatMap(m => m.items).filter(i => !i.matched).length;
+  html += `<div style="margin-top:8px;font-size:.75rem;color:var(--text-muted)">${totalItems} alimentos encontrados${unmatched ? ` · <span style="color:#f97316">${unmatched} não reconhecidos</span>` : ''}</div>`;
+
+  preview.innerHTML = html;
+  preview.classList.remove('hidden');
+  document.getElementById('btnImportDiet').classList.remove('hidden');
+}
+
+// Importa os meals parseados para o container myDietResult
+function importParsedDiet() {
+  if (!_parsedMeals.length) return;
+  renderMyDiet(_parsedMeals);
+  setImportTab('manual');
+  document.getElementById('mdParsePreview').classList.add('hidden');
+  document.getElementById('btnImportDiet').classList.add('hidden');
+}
+
+// Renderiza array de refeições em #myDietResult
+function renderMyDiet(meals) {
+  const box = document.getElementById('myDietResult');
+  let html = '', totalCal = 0, totalProt = 0, totalCarb = 0, totalFat = 0;
+
+  meals.forEach(meal => {
+    const refCal = meal.items.reduce((s, i) => s + (i.cal || 0), 0);
+    totalCal  += refCal;
+    totalProt += meal.items.reduce((s, i) => s + (i.prot || 0), 0);
+    totalCarb += meal.items.reduce((s, i) => s + (i.carb || 0), 0);
+    totalFat  += meal.items.reduce((s, i) => s + (i.fat  || 0), 0);
+
+    html += `<div class="meal-card">
+      <div class="meal-title">
+        <span>${meal.nome}</span>
+        <span class="meal-kcal">${refCal} kcal</span>
+        <button class="btn-rm-meal" onclick="removeMeal(this)">Excluir refeição</button>
+      </div>
+      ${meal.items.map(it => `<div class="meal-item${it.matched ? '' : ' unmatched-food'}"
+          data-target-cal="${it.cal}"
+          data-actual-cal="${it.cal}"
+          data-actual-prot="${it.prot}"
+          data-actual-carb="${it.carb}"
+          data-actual-fat="${it.fat}"
+          data-food-name="${it.name}"
+          title="${!it.matched ? 'Alimento não encontrado no banco — edite para recalcular' : it.unitConverted ? 'Quantidade convertida de ' + it.rawLabel : ''}">
+          <div class="meal-item-ac">
+            <input type="text" class="meal-item-input" value="${it.name}" autocomplete="off" spellcheck="false">
+            <div class="meal-item-dd dropdown"></div>
+          </div>
+          <span class="meal-item-qty">${it.matched ? fmtQty(it.name, it.g, it.cal) : it.g + 'g'}</span>
+          <button class="btn-rm-food" onclick="removeFood(this)">×</button>
+        </div>`).join('')}
+      <button class="btn-add-food" onclick="addFood(this)">＋ Alimento</button>
+    </div>`;
+  });
+
+  html += `<button class="btn-add-meal" onclick="addMyDietMeal()">＋ Adicionar refeição</button>`;
+  html += `<div class="plan-total">
+    <span class="plan-total-kcal">Total do dia: ${totalCal} kcal</span>
+    <div class="plan-macros">
+      <span>Proteína ${totalProt.toFixed(0)}g</span>
+      <span>Carb ${totalCarb.toFixed(0)}g</span>
+      <span>Gordura ${totalFat.toFixed(0)}g</span>
+    </div>
+  </div>`;
+
+  box.innerHTML = html;
+  box.dataset.targetTotal = totalCal;
+  box.querySelectorAll('.meal-item-input').forEach(inp => setupPlanItemAC(inp, inp.nextElementSibling));
+  box.classList.remove('hidden');
+  document.getElementById('btnAnalyzeMyDiet').classList.remove('hidden');
+  document.getElementById('btnPdfMyDiet').classList.remove('hidden');
+  document.getElementById('btnCloseMyDiet').classList.remove('hidden');
+}
+
+// Adiciona refeição manualmente ao myDietResult
+function addMyDietMeal() {
+  const box = document.getElementById('myDietResult');
+  box.classList.remove('hidden');
+
+  // Garante que o btn-add-meal exista no container
+  let addBtn = box.querySelector('.btn-add-meal');
+  if (!addBtn) {
+    box.innerHTML = `<button class="btn-add-meal" onclick="addMyDietMeal()">＋ Adicionar refeição</button>
+      <div class="plan-total">
+        <span class="plan-total-kcal">Total do dia: 0 kcal</span>
+        <div class="plan-macros"><span>Proteína 0g</span><span>Carb 0g</span><span>Gordura 0g</span></div>
+      </div>`;
+    addBtn = box.querySelector('.btn-add-meal');
+    document.getElementById('btnAnalyzeMyDiet').classList.remove('hidden');
+    document.getElementById('btnPdfMyDiet').classList.remove('hidden');
+    document.getElementById('btnCloseMyDiet').classList.remove('hidden');
+  }
+
+  const card = document.createElement('div');
+  card.className = 'meal-card';
+  card.innerHTML = `
+    <div class="meal-title">
+      <input class="meal-name-input" type="text" placeholder="Nome da refeição" value="🍴 Nova refeição">
+      <span class="meal-kcal">0 kcal</span>
+      <button class="btn-rm-meal" onclick="removeMeal(this)" title="Remover refeição">×</button>
+    </div>
+    <button class="btn-add-food" onclick="addFood(this)">＋ Alimento</button>`;
+  addBtn.before(card);
+}
+
+// Imagem como referência
+function handleMyDietImage(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wrap = document.getElementById('mdImagePreview');
+    wrap.innerHTML = `<img src="${e.target.result}" alt="Prescrição">`;
+    wrap.classList.remove('hidden');
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// Abas de importação
+function setImportTab(tab) {
+  document.querySelectorAll('.import-tab').forEach((btn, i) => {
+    const tabs = ['manual', 'text', 'image'];
+    btn.classList.toggle('active', tabs[i] === tab);
+  });
+  document.getElementById('importPanelManual').classList.toggle('hidden', tab !== 'manual');
+  document.getElementById('importPanelText').classList.toggle('hidden', tab !== 'text');
+  document.getElementById('importPanelImage').classList.toggle('hidden', tab !== 'image');
+}
+
+// Analisar / PDF
+function analyzeMyDiet() {
+  const box      = document.getElementById('myDietResult');
+  const panel    = document.getElementById('myDietAnalysis');
+  const calDia   = parseFloat(document.getElementById('md-cal').value) || 0;
+  analyzePlan(box, panel, calDia, '');
+}
+
+function printMyDiet() {
+  const box = document.getElementById('myDietResult');
+  const cal = document.getElementById('md-cal').value;
+  const right = cal ? `Minha Dieta  ·  ${cal} kcal/dia` : 'Minha Dieta — NunzioDiet';
+  printPlan(box, right);
+}
+
+// Abrir / fechar modal
+function openMyDiet() {
+  document.getElementById('myDietModal').classList.remove('hidden');
+}
+function closeMyDiet() {
+  document.getElementById('myDietModal').classList.add('hidden');
+}
+function closeMyDietOnBg(e) {
+  if (e.target.id === 'myDietModal') closeMyDiet();
+}
+
+function resetMyDiet() {
+  const box = document.getElementById('myDietResult');
+  box.innerHTML = '';
+  box.classList.add('hidden');
+  box.dataset.targetTotal = '0';
+  document.getElementById('myDietAnalysis').classList.add('hidden');
+  document.getElementById('myDietAnalysis').innerHTML = '';
+  document.getElementById('btnAnalyzeMyDiet').classList.add('hidden');
+  document.getElementById('btnPdfMyDiet').classList.add('hidden');
+  document.getElementById('btnCloseMyDiet').classList.add('hidden');
+  document.getElementById('mdPasteText').value = '';
+  document.getElementById('mdParsePreview').classList.add('hidden');
+  document.getElementById('btnImportDiet').classList.add('hidden');
+  document.getElementById('mdImagePreview').classList.add('hidden');
+  document.getElementById('mdImageInput').value = '';
+  document.getElementById('md-cal').value = '';
+  _parsedMeals = [];
+  setImportTab('manual');
+  showToast('Dieta limpa. Pronto para começar novamente.', 'success');
+}
 
 // ── Tema claro / escuro ──────────────────────────────────────
 function toggleMenu() {
@@ -1806,8 +2336,9 @@ function toggleMenu() {
 function navGoTo(feature) {
   document.getElementById('navMenu').classList.add('hidden');
   if (feature === 'water') openWater();
-  else if (feature === 'hb')   openHB();
-  else if (feature === 'plan') openPlan();
+  else if (feature === 'hb')     openHB();
+  else if (feature === 'plan')   openPlan();
+  else if (feature === 'mydiet') openMyDiet();
 }
 
 document.addEventListener('click', function(e) {
@@ -2128,12 +2659,16 @@ function getPlanDb() {
 function generatePlan() {
   const objetivo  = document.getElementById('p-objetivo').value;
   const calDia    = parseFloat(document.getElementById('p-cal').value);
-  if (!objetivo) { alert('Selecione o objetivo.'); return; }
+  if (!objetivo) { showToast('Selecione o objetivo.'); return; }
   if (!calDia || calDia < 800 || calDia > 6000) {
-    alert('Informe um valor entre 800 e 6000 kcal.');
+    showToast('Informe um valor entre 800 e 6000 kcal.');
     return;
   }
 
+  const btn = document.getElementById('btnGerarPlano');
+  if (btn) { btn.disabled = true; btn.textContent = 'Gerando...'; }
+
+  setTimeout(() => {
   const db = getPlanDb();
   const isVeg      = document.getElementById('r-veg').checked;
   const semGluten  = document.getElementById('r-gluten').checked;
@@ -2227,6 +2762,8 @@ function generatePlan() {
   document.getElementById('analysisPanel').classList.add('hidden');
   document.getElementById('btnPdf').classList.remove('hidden');
   document.getElementById('btnClosePlan').classList.remove('hidden');
+  if (btn) { btn.disabled = false; btn.textContent = 'Gerar cardápio'; }
+  }, 0);
 }
 
 function openPlan() {
@@ -2256,12 +2793,14 @@ function showSwapTip(item, oldFood, newFood, oldG, newG) {
   setTimeout(() => tip.remove(), 3500);
 }
 
-function analyzePlan() {
-  const calDia   = parseFloat(document.getElementById('p-cal').value) || 0;
-  const objetivo = document.getElementById('p-objetivo').value;
+function analyzePlan(box, analysisEl, calDia, objetivo) {
+  box        = box        || document.getElementById('planResult');
+  analysisEl = analysisEl || document.getElementById('analysisPanel');
+  calDia     = calDia     != null ? calDia   : (parseFloat(document.getElementById('p-cal').value) || 0);
+  objetivo   = objetivo   != null ? objetivo : (document.getElementById('p-objetivo').value);
   let totalProt = 0, totalCarb = 0, totalFat = 0, totalCal = 0, totalFib = 0;
 
-  document.querySelectorAll('#planResult .meal-item').forEach(item => {
+  box.querySelectorAll('.meal-item').forEach(item => {
     const cal  = parseInt(item.dataset.actualCal  || 0);
     const prot = parseFloat(item.dataset.actualProt || 0);
     const carb = parseFloat(item.dataset.actualCarb || 0);
@@ -2319,28 +2858,32 @@ function analyzePlan() {
   }
 
   const icon = { good: '✓', warn: '⚠', info: 'ℹ' };
-  const panel = document.getElementById('analysisPanel');
-  panel.innerHTML = `
+  const panelId = analysisEl.id;
+  analysisEl.innerHTML = `
     <div class="analysis-header">
       <span>Análise Nutricional</span>
-      <button onclick="document.getElementById('analysisPanel').classList.add('hidden')">×</button>
+      <button onclick="document.getElementById('${panelId}').classList.add('hidden')">×</button>
     </div>
     ${tips.map(t => `<div class="tip-item tip-${t.type}">
       <span class="tip-icon">${icon[t.type]}</span>
       <span class="tip-text">${t.text}</span>
     </div>`).join('')}
   `;
-  panel.classList.remove('hidden');
-  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  analysisEl.classList.remove('hidden');
+  analysisEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-function printPlan() {
-  if (!window.jspdf) { alert('jsPDF não carregado. Tente novamente.'); return; }
+function printPlan(box, headerRight) {
+  if (!window.jspdf) { showToast('jsPDF não carregado. Tente novamente.'); return; }
+  box = box || document.getElementById('planResult');
   const { jsPDF } = window.jspdf;
 
-  const objetivo = document.getElementById('p-objetivo').value;
-  const calMeta  = document.getElementById('p-cal').value;
-  const objLabel = { emagrecer: 'Emagrecer', manter: 'Manter peso', massa: 'Ganhar massa' }[objetivo] || objetivo;
+  if (headerRight == null) {
+    const objetivo = document.getElementById('p-objetivo').value;
+    const calMeta  = document.getElementById('p-cal').value;
+    const objLabel = { emagrecer: 'Emagrecer', manter: 'Manter peso', massa: 'Ganhar massa' }[objetivo] || objetivo;
+    headerRight = `${objLabel}  ·  ${calMeta} kcal/dia`;
+  }
 
   const doc  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pw   = 210;
@@ -2360,14 +2903,14 @@ function printPlan() {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(180, 170, 210);
-  doc.text(`${objLabel}  ·  ${calMeta} kcal/dia`, pw - mg, 11, { align: 'right' });
+  doc.text(headerRight, pw - mg, 11, { align: 'right' });
   doc.setDrawColor(139, 92, 246);
   doc.setLineWidth(0.4);
   doc.line(0, 18, pw, 18);
   y = 25;
 
   // ── Refeições ─────────────────────────────────────────────
-  document.querySelectorAll('#planResult .meal-card').forEach(card => {
+  box.querySelectorAll('.meal-card').forEach(card => {
     const nameEl = card.querySelector('.meal-title > span');
     const kcalEl = card.querySelector('.meal-kcal');
     if (!nameEl) return;
@@ -2408,8 +2951,8 @@ function printPlan() {
   });
 
   // ── Total do dia ──────────────────────────────────────────
-  const kcalTotalEl = document.querySelector('#planResult .plan-total-kcal');
-  const macrosEl    = document.querySelector('#planResult .plan-macros');
+  const kcalTotalEl = box.querySelector('.plan-total-kcal');
+  const macrosEl    = box.querySelector('.plan-macros');
   if (kcalTotalEl) {
     if (y + 16 > 278) { doc.addPage(); y = 14; }
     doc.setFillColor(13, 110, 104);
@@ -2458,7 +3001,7 @@ function printPlan() {
 function setupPlanItemAC(inp, dd) {
   let hi = -1;
 
-  inp.addEventListener('input', () => {
+  inp.addEventListener('input', debounce(() => {
     const q = inp.value.trim();
     if (!q) { dd.classList.remove('open'); return; }
 
@@ -2487,7 +3030,7 @@ function setupPlanItemAC(inp, dd) {
     });
     hi = -1;
     dd.classList.add('open');
-  });
+  }, 120));
 
   inp.addEventListener('keydown', e => {
     const items = dd.querySelectorAll('.dd-item');
@@ -2502,6 +3045,7 @@ function setupPlanItemAC(inp, dd) {
 
 function selectPlanFood(inp, food) {
   const item   = inp.closest('.meal-item');
+  const box    = inp.closest('#myDietResult') || document.getElementById('planResult');
   const isNew  = parseInt(item.dataset.actualCal || 0) === 0;
   const oldCal = parseInt(item.dataset.actualCal || 0);
   let g, actualCal;
@@ -2528,22 +3072,23 @@ function selectPlanFood(inp, food) {
   item.querySelector('.meal-item-qty').textContent = fmtQty(food.name, g, actualCal);
 
   if (isNew) {
-    updateTargetTotal();
+    updateTargetTotal(box);
   } else {
     const delta = oldCal - actualCal;
-    if (delta !== 0) redistributeDelta(delta, item);
+    if (delta !== 0) redistributeDelta(delta, item, box);
   }
-  recalcTotals();
+  recalcTotals(box);
 }
 
 // Distribui `delta` kcal proporcionalmente entre todos os itens do plano (exceto excludeItem).
 // delta > 0 → outros recebem mais calorias (slot atual ficou com menos)
 // delta < 0 → outros perdem calorias (slot atual ficou com mais)
-function redistributeDelta(delta, excludeItem) {
+function redistributeDelta(delta, excludeItem, box) {
   if (!delta) return;
+  box = box || excludeItem?.closest('#myDietResult') || document.getElementById('planResult');
 
   // Apenas itens com alimento reconhecido no DB e calorias > 0
-  const others = [...document.querySelectorAll('#planResult .meal-item')].filter(el => {
+  const others = [...box.querySelectorAll('.meal-item')].filter(el => {
     if (el === excludeItem) return false;
     if (parseInt(el.dataset.actualCal || 0) <= 0) return false;
     const name = el.querySelector('.meal-item-input')?.value;
@@ -2576,10 +3121,11 @@ function redistributeDelta(delta, excludeItem) {
   });
 }
 
-function recalcTotals() {
+function recalcTotals(box) {
+  box = box || document.getElementById('planResult');
   let dayCalTotal = 0, dayProtTotal = 0, dayCarbTotal = 0, dayFatTotal = 0;
 
-  document.querySelectorAll('#planResult .meal-card').forEach(card => {
+  box.querySelectorAll('.meal-card').forEach(card => {
     let mealCal = 0;
     card.querySelectorAll('.meal-item').forEach(item => {
       const c = parseInt(item.dataset.actualCal || 0);
@@ -2592,28 +3138,30 @@ function recalcTotals() {
     card.querySelector('.meal-kcal').textContent = mealCal + ' kcal';
   });
 
-  const kcalEl = document.querySelector('#planResult .plan-total-kcal');
+  const kcalEl = box.querySelector('.plan-total-kcal');
   if (kcalEl) kcalEl.textContent = `Total do dia: ${dayCalTotal} kcal`;
 
-  const macrosEl = document.querySelector('#planResult .plan-macros');
+  const macrosEl = box.querySelector('.plan-macros');
   if (macrosEl) macrosEl.innerHTML = `
     <span>Proteína ${dayProtTotal.toFixed(0)}g</span>
     <span>Carb ${dayCarbTotal.toFixed(0)}g</span>
     <span>Gordura ${dayFatTotal.toFixed(0)}g</span>`;
 }
 
-function updateTargetTotal() {
+function updateTargetTotal(box) {
+  box = box || document.getElementById('planResult');
   let total = 0;
-  document.querySelectorAll('#planResult .meal-item').forEach(item => {
+  box.querySelectorAll('.meal-item').forEach(item => {
     total += parseInt(item.dataset.actualCal || 0);
   });
-  document.getElementById('planResult').dataset.targetTotal = total;
+  box.dataset.targetTotal = total;
 }
 
 function removeFood(btn) {
+  const box = btn.closest('#myDietResult') || document.getElementById('planResult');
   btn.closest('.meal-item').remove();
-  updateTargetTotal();
-  recalcTotals();
+  updateTargetTotal(box);
+  recalcTotals(box);
 }
 
 function addFood(btn) {
@@ -2639,9 +3187,13 @@ function addFood(btn) {
 }
 
 function removeMeal(btn) {
-  btn.closest('.meal-card').remove();
-  updateTargetTotal();
-  recalcTotals();
+  const card = btn.closest('.meal-card');
+  const box  = btn.closest('#myDietResult') || document.getElementById('planResult');
+  showConfirm('Remover esta refeição?', () => {
+    card.remove();
+    updateTargetTotal(box);
+    recalcTotals(box);
+  });
 }
 
 function addMeal() {
@@ -2684,10 +3236,10 @@ function calcHB() {
   const idade  = parseFloat(document.getElementById('h-idade').value);
   const ativ   = parseFloat(document.getElementById('h-ativ').value);
 
-  if (!sexo) { alert('Selecione o sexo.'); return; }
-  if (!ativ) { alert('Selecione o nível de atividade.'); return; }
+  if (!sexo) { showToast('Selecione o sexo.'); return; }
+  if (!ativ) { showToast('Selecione o nível de atividade.'); return; }
   if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
-    alert('Preencha todos os campos corretamente.');
+    showToast('Preencha todos os campos corretamente.');
     return;
   }
 
@@ -2744,6 +3296,7 @@ function usarNoPlano(kcal, objetivo) {
   document.getElementById('p-objetivo').value = objetivo;
   document.getElementById('planResult').classList.add('hidden');
   document.getElementById('planModal').classList.remove('hidden');
+  showToast('Valores transferidos para o planejador', 'success');
 }
 
 // ── Calculadora de Água ──────────────────────────────────────────
@@ -2768,7 +3321,7 @@ function calcWater() {
   const idade = parseFloat(document.getElementById('w-idade').value);
 
   if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
-    alert('Preencha todos os campos corretamente.');
+    showToast('Preencha todos os campos corretamente.');
     return;
   }
 
@@ -2828,7 +3381,7 @@ function calcIMC() {
   const idade  = parseFloat(document.getElementById('i-idade').value);
 
   if (!peso || !altura || !idade || peso <= 0 || altura <= 0 || idade <= 0) {
-    alert('Preencha todos os campos corretamente.');
+    showToast('Preencha todos os campos corretamente.');
     return;
   }
 
