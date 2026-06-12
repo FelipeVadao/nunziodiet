@@ -543,10 +543,14 @@
     }
     .modal-close {
       position: absolute;
-      top: 16px; right: 18px;
+      top: 6px; right: 8px;
       background: none; border: none;
       font-size: 1.4rem; cursor: pointer;
       color: var(--text-muted); line-height: 1;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      transition: background .15s, color .15s;
     }
     .modal-close:hover { color: var(--charcoal); }
     .modal-title {
@@ -769,11 +773,11 @@
     /* ── Menu hamburger ──────────────────────────────────── */
     .home-btn {
       position: absolute;
-      top: 14px; left: 16px;
+      top: 11px; left: 13px;
       background: rgba(0,0,0,.18);
       border: none;
       border-radius: 50%;
-      width: 38px; height: 38px;
+      width: 44px; height: 44px;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background .2s;
@@ -816,11 +820,11 @@
     /* Botão de tema */
     .theme-toggle {
       position: absolute;
-      top: 14px; right: 16px;
+      top: 11px; right: 13px;
       background: rgba(0,0,0,.18);
       border: none;
       border-radius: 50%;
-      width: 38px; height: 38px;
+      width: 44px; height: 44px;
       font-size: 1.1rem;
       cursor: pointer;
       line-height: 1;
@@ -1117,6 +1121,10 @@
 
       /* Legendas de macro */
       .legend { flex-wrap: wrap; gap: 12px; }
+
+      /* Touch targets mínimos (44px) */
+      .btn-rm-food { min-height: 44px; padding: 0 12px; }
+      .btn-rm-meal { padding: 8px 12px; }
     }
   </style>
 </head>
