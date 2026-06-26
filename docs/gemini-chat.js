@@ -13,7 +13,7 @@
   "use strict";
 
   // ⚠️ Troque pela URL do seu Worker depois de publicar (wrangler deploy).
-  const WORKER_URL = "https://nunziodiet-ai.SEU-SUBDOMINIO.workers.dev";
+  const WORKER_URL = "https://nunziodiet-ai.felipeconceicaopc.workers.dev";
 
   // Memória da sessão (não persiste entre recarregamentos — de propósito).
   const history = [];
