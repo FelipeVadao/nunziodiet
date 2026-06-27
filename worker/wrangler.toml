@@ -1,0 +1,7 @@
+name = "nunziodiet-ai"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# A chave GEMINI_API_KEY NÃO vai aqui.
+# Configure como secret (criptografada) com:
+#   wrangler secret put GEMINI_API_KEY

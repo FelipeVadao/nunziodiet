@@ -13,8 +13,10 @@ Aplicativo de nutrição publicável como web, Android e iOS via Capacitor. Hosp
 ```
 docs/                        ← webDir do Capacitor + source do GitHub Pages
   index.html                 ← ARQUIVO PRINCIPAL (editar aqui)
+  gemini-chat.js             ← widget do assistente "Nunzinho" (ver seção própria)
   jspdf.umd.min.js           ← PDF local, sem CDN
   fonts/Orbitron.woff2       ← Fonte local, sem Google Fonts CDN
+worker/                      ← Cloudflare Worker do assistente "Nunzinho" (ver seção própria)
 android/                     ← Projeto Android Studio (gerado pelo Capacitor)
 capacitor.config.json        ← appId: com.nunziodiet.app, webDir: docs
 package.json                 ← @capacitor/core, android, ios, filesystem, share
@@ -31,6 +33,14 @@ npx cap open android
 ```
 
 Para iOS (requer Mac + Xcode): `npx cap add ios && npx cap open ios`
+
+## Assistente de IA "Nunzinho"
+
+Widget de chat flutuante (`docs/gemini-chat.js`, injetado em `docs/index.html` via `<script defer>`) que conversa com a API do Google Gemini através de um Cloudflare Worker em `worker/worker.js` — a chave da API nunca fica no frontend.
+
+- `docs/gemini-chat.js` é a **única cópia** do widget — não duplicar em outro lugar. A constante `WORKER_URL` no topo aponta para a URL pública do Worker.
+- `worker/worker.js` define `SYSTEM_INSTRUCTION` (persona/tom debochado do Nunzinho) e os parâmetros do Gemini (`temperature`, `maxOutputTokens`, etc).
+- Deploy do Worker: `cd worker && wrangler deploy` (requer `wrangler secret put GEMINI_API_KEY` configurado uma vez por ambiente). Detalhes em `worker/README.md`.
 
 ## Architecture
 

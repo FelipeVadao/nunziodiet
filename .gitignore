@@ -17,6 +17,9 @@ ios/App/Pods/
 *.pem
 *.key
 
+# ── Cloudflare Worker (assistente Nunzinho) ──────────────────────
+worker/.wrangler/
+
 # ── Node.js ───────────────────────────────────────────────────────
 node_modules/
 npm-debug.log*
