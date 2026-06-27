@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> Para uma especificação completa do projeto — histórico de evolução, arquitetura detalhada de cada funcionalidade, e do assistente de IA "Nunzinho" — consulte `Spec_CLAUDE.md`. Leia-o quando precisar de contexto histórico ou de uma visão completa antes de mudanças estruturais grandes.
+
 ## Project
 
 Aplicativo de nutrição publicável como web, Android e iOS via Capacitor. Hospedado em `felipevadao.github.io/nunziodiet`.
