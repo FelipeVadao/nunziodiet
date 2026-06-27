@@ -91,7 +91,8 @@ export default {
       generationConfig: {
         temperature: 0.7,
         topP: 0.95,
-        maxOutputTokens: 350,
+        maxOutputTokens: 500,
+        thinkingConfig: { thinkingBudget: 0 },
       },
       safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
