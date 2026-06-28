@@ -900,21 +900,9 @@
       animation: up .2s ease, fadeout .3s ease 3.2s both;
     }
 
-    /* ── Minha Dieta — abas de importação ── */
-    .import-tabs {
-      display: flex; gap: 6px; margin: 14px 0 10px;
-    }
-    .import-tab {
-      flex: 1; padding: 8px 6px; border-radius: 10px; border: 1.5px solid var(--border);
-      background: transparent; font-size: 0.78rem; font-weight: 700; cursor: pointer;
-      color: var(--text-muted); transition: background .15s, border-color .15s, color .15s;
-    }
-    .import-tab.active { background: var(--green-bg); border-color: var(--green); color: var(--green-xdark); }
-    .import-tab:hover:not(.active) { background: rgba(0,0,0,.04); }
-
-    .import-panel { margin-bottom: 8px; }
+    /* ── Minha Dieta — importação unificada ── */
     .import-hint {
-      font-size: .78rem; color: var(--text-muted); margin: 6px 0; line-height: 1.5;
+      font-size: .78rem; color: var(--text-muted); margin: 10px 0 6px; line-height: 1.5;
     }
     .import-textarea {
       width: 100%; min-height: 140px; resize: vertical;
@@ -925,20 +913,16 @@
     }
     .import-textarea:focus { outline: none; border-color: var(--green); }
 
-    .import-image-label {
-      display: flex; align-items: center; gap: 10px; cursor: pointer;
+    .md-import-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+    .import-file-label {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
       padding: 10px 14px; border: 1.5px dashed var(--border); border-radius: 12px;
       font-size: .84rem; font-weight: 600; color: var(--text-muted);
       transition: border-color .2s, color .2s;
     }
-    .import-image-label:hover { border-color: #0369a1; color: #0369a1; }
-    .import-image-label input { display: none; }
-
-    .image-ref-wrap {
-      margin-top: 10px; border-radius: 12px; overflow: auto; max-height: 280px;
-      border: 1.5px solid var(--border);
-    }
-    .image-ref-wrap img { width: 100%; display: block; }
+    .import-file-label:hover { border-color: #0369a1; color: #0369a1; }
+    .import-file-label input { display: none; }
 
     .md-clear-btn {
       display: block; margin: 4px 0 0 auto;
@@ -1011,14 +995,10 @@
     [data-theme="dark"] .btn-fechar:hover { border-color: #94a3b8; color: #f1f5f9; }
     [data-theme="dark"] .md-clear-btn { border-color: #dc2626; color: #f87171; }
     [data-theme="dark"] .md-clear-btn:hover { background: rgba(220,38,38,0.1); }
-    [data-theme="dark"] .import-tab { border-color: rgba(139,92,246,0.2); color: #7c7a9c; }
-    [data-theme="dark"] .import-tab.active { background: rgba(98,200,35,0.08); border-color: var(--green); color: #86efac; }
-    [data-theme="dark"] .import-tab:hover:not(.active) { background: rgba(139,92,246,0.06); }
     [data-theme="dark"] .import-textarea { background: rgba(11,7,24,0.8); border-color: rgba(139,92,246,0.2); color: #e8e8f0; }
     [data-theme="dark"] .import-textarea:focus { border-color: rgba(139,92,246,0.6); }
-    [data-theme="dark"] .import-image-label { border-color: rgba(139,92,246,0.2); }
-    [data-theme="dark"] .import-image-label:hover { border-color: #38bdf8; color: #38bdf8; }
-    [data-theme="dark"] .image-ref-wrap { border-color: rgba(139,92,246,0.2); }
+    [data-theme="dark"] .import-file-label { border-color: rgba(139,92,246,0.2); }
+    [data-theme="dark"] .import-file-label:hover { border-color: #38bdf8; color: #38bdf8; }
     [data-theme="dark"] .md-parse-preview { background: rgba(11,7,24,0.5); border-color: rgba(139,92,246,0.2); }
     [data-theme="dark"] .md-parse-meal { color: #e8e8f0; }
     [data-theme="dark"] .md-parse-item { color: #c4b5fd; }
@@ -1418,21 +1398,10 @@
       <div class="modal-sub">Insira a dieta prescrita pelo nutricionista</div>
       <button class="md-clear-btn" onclick="resetMyDiet()" title="Limpar tudo e recomeçar">🗑 Limpar dieta</button>
 
-      <!-- Abas de importação -->
-      <div class="import-tabs">
-        <button class="import-tab active" onclick="setImportTab('manual')">✏️ Digitar</button>
-        <button class="import-tab" onclick="setImportTab('text')">📄 Colar texto / PDF</button>
-        <button class="import-tab" onclick="setImportTab('image')">🖼️ Imagem</button>
-      </div>
+      <!-- Importação unificada: digitar, colar ou importar arquivo -->
+      <p class="import-hint">Escreva ou cole a dieta abaixo, ou importe um arquivo .txt do seu dispositivo. Para .doc ou .pdf, abra o arquivo, selecione o texto (Ctrl+A), copie (Ctrl+C) e cole aqui. Você também pode montar a dieta manualmente com o botão <strong>＋ Adicionar refeição</strong> mais abaixo.</p>
 
-      <!-- Aba: Digitar -->
-      <div id="importPanelManual" class="import-panel">
-        <p class="import-hint">Use o botão <strong>＋ Adicionar refeição</strong> abaixo para montar a dieta manualmente. Os alimentos são pesquisados no mesmo banco de dados do app.</p>
-      </div>
-
-      <!-- Aba: Colar texto -->
-      <div id="importPanelText" class="import-panel hidden">
-        <textarea id="mdPasteText" class="import-textarea" placeholder="Cole o texto da prescrição aqui…
+      <textarea id="mdPasteText" class="import-textarea" placeholder="Digite ou cole o texto da prescrição aqui…
 
 Exemplo:
 Café da manhã
@@ -1442,21 +1411,16 @@ Café da manhã
 Almoço
 - Tilápia 200g
 - Batata doce 1 xícara"></textarea>
-        <p class="import-hint">💡 Para PDF: abra o arquivo, selecione todo o texto (Ctrl+A), copie (Ctrl+C) e cole aqui.</p>
-        <button class="btn-calcwater" style="background:#0369a1;color:white;margin-top:8px" onclick="parseDietTextAndPreview()">Interpretar texto</button>
-        <div id="mdParsePreview" class="hidden md-parse-preview"></div>
-        <button id="btnImportDiet" class="btn-calcwater hidden" style="background:#15803d;color:white;margin-top:6px" onclick="importParsedDiet()">Importar para a dieta</button>
-      </div>
 
-      <!-- Aba: Imagem -->
-      <div id="importPanelImage" class="import-panel hidden">
-        <label class="import-image-label">
-          <input type="file" id="mdImageInput" accept="image/*" onchange="handleMyDietImage(this)">
-          <span>Selecionar imagem da prescrição</span>
+      <div class="md-import-row">
+        <label class="import-file-label">
+          <input type="file" id="mdFileInput" accept=".txt,text/plain,.doc,.docx,.pdf" onchange="handleMyDietFile(this)">
+          <span>Importar arquivo</span>
         </label>
-        <p class="import-hint">A imagem aparece como referência enquanto você digita na aba <strong>Digitar</strong>.</p>
-        <div id="mdImagePreview" class="image-ref-wrap hidden"></div>
+        <button class="btn-calcwater" style="background:#0369a1;color:white" onclick="parseDietTextAndPreview()">Interpretar texto</button>
       </div>
+      <div id="mdParsePreview" class="hidden md-parse-preview"></div>
+      <button id="btnImportDiet" class="btn-calcwater hidden" style="background:#15803d;color:white;margin-top:6px" onclick="importParsedDiet()">Importar para a dieta</button>
 
       <!-- Meta calórica opcional -->
       <div class="md-cal-row">
@@ -2159,7 +2123,6 @@ function parseDietTextAndPreview() {
 function importParsedDiet() {
   if (!_parsedMeals.length) return;
   renderMyDiet(_parsedMeals);
-  setImportTab('manual');
   document.getElementById('mdParsePreview').classList.add('hidden');
   document.getElementById('btnImportDiet').classList.add('hidden');
 }
@@ -2251,27 +2214,25 @@ function addMyDietMeal() {
   addBtn.before(card);
 }
 
-// Imagem como referência
-function handleMyDietImage(input) {
-  if (!input.files[0]) return;
+// Importar arquivo: .txt é lido direto; .doc/.docx/.pdf pedem copiar/colar manual
+function handleMyDietFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const isPlainText = file.type === 'text/plain' || /\.txt$/i.test(file.name);
+  if (!isPlainText) {
+    showToast('Abra o arquivo, copie o texto (Ctrl+A, Ctrl+C) e cole no campo acima.');
+    input.value = '';
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = e => {
-    const wrap = document.getElementById('mdImagePreview');
-    wrap.innerHTML = `<img src="${e.target.result}" alt="Prescrição">`;
-    wrap.classList.remove('hidden');
+    document.getElementById('mdPasteText').value = e.target.result;
+    parseDietTextAndPreview();
   };
-  reader.readAsDataURL(input.files[0]);
-}
-
-// Abas de importação
-function setImportTab(tab) {
-  document.querySelectorAll('.import-tab').forEach((btn, i) => {
-    const tabs = ['manual', 'text', 'image'];
-    btn.classList.toggle('active', tabs[i] === tab);
-  });
-  document.getElementById('importPanelManual').classList.toggle('hidden', tab !== 'manual');
-  document.getElementById('importPanelText').classList.toggle('hidden', tab !== 'text');
-  document.getElementById('importPanelImage').classList.toggle('hidden', tab !== 'image');
+  reader.readAsText(file);
+  input.value = '';
 }
 
 // Analisar / PDF
@@ -2313,11 +2274,9 @@ function resetMyDiet() {
   document.getElementById('mdPasteText').value = '';
   document.getElementById('mdParsePreview').classList.add('hidden');
   document.getElementById('btnImportDiet').classList.add('hidden');
-  document.getElementById('mdImagePreview').classList.add('hidden');
-  document.getElementById('mdImageInput').value = '';
+  document.getElementById('mdFileInput').value = '';
   document.getElementById('md-cal').value = '';
   _parsedMeals = [];
-  setImportTab('manual');
   showToast('Dieta limpa. Pronto para começar novamente.', 'success');
 }
 
