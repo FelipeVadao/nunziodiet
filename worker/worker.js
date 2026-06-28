@@ -117,7 +117,15 @@ export default {
       // Não vaza detalhes da API pro cliente; loga internamente.
       const detail = await geminiResp.text().catch(() => "");
       console.error("Gemini error", geminiResp.status, detail);
-      return json({ error: "A IA travou. Tenta de novo daqui a pouco." }, 502);
+      const busy = geminiResp.status === 503;
+      return json(
+        {
+          error: busy
+            ? "Tá engasgado de tanta gente perguntando. Espera uns segundos e tenta de novo."
+            : "A IA travou. Tenta de novo daqui a pouco.",
+        },
+        502
+      );
     }
 
     const data = await geminiResp.json().catch(() => null);
